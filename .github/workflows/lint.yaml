@@ -22,7 +22,11 @@ jobs:
         run: npx html-validate "**/*.html"
 
       - name: Lint CSS
-        run: npx stylelint "**/*.css"
+        run: |
+          cat > .stylelintrc.json <<'EOF'
+          { "extends": "stylelint-config-standard" }
+          EOF
+          npx stylelint "**/*.css"
 
       - name: Lint JS
         run: |
