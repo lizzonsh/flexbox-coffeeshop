@@ -1,0 +1,54 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    if: github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install linters
+        run: npm install --no-save html-validate stylelint stylelint-config-standard eslint@9
+
+      - name: Lint HTML
+        run: npx html-validate "**/*.html"
+
+      - name: Lint CSS
+        run: npx stylelint "**/*.css"
+
+      - name: Lint JS
+        run: |
+          cat > eslint.config.mjs <<'EOF'
+          export default [
+            {
+              files: ["**/*.js"],
+              ignores: ["node_modules/**"],
+              languageOptions: {
+                ecmaVersion: 2021,
+                sourceType: "script",
+                globals: {
+                  window: "readonly",
+                  document: "readonly",
+                  localStorage: "readonly",
+                  console: "readonly",
+                  alert: "readonly",
+                  LEVELS: "readonly",
+                  OPTIONS: "readonly"
+                }
+              },
+              rules: {
+                "no-unused-vars": "warn",
+                "no-undef": "error"
+              }
+            }
+          ];
+          EOF
+          npx eslint "**/*.js" --no-config-lookup --config eslint.config.mjs

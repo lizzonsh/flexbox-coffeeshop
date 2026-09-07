@@ -490,6 +490,24 @@ button:hover {
   color: #fff;
 }
 
+/* current: the active level. Comes after .completed in source order so it
+   wins if a player navigates back to an already-completed level (both
+   classes can be present at once) — same specificity, later rule takes it.
+   Dark fill + light text + a rose ring, since the bar itself is already
+   espresso-dark: a plain darker fill alone would blend into the bar, the
+   ring is what actually makes it read as "selected" at a glance. */
+#level-nav button.current {
+  background: var(--espresso);
+  color: var(--cream);
+  box-shadow: 0 0 0 3px var(--rose);
+  transform: scale(1.08);
+}
+
+#level-nav button.current:hover:not(:disabled) {
+  background: var(--espresso);
+  transform: scale(1.08) translateY(-2px);
+}
+
 /* locked: pale and inert. `disabled` already blocks clicks/keyboard focus and
    is what script.js sets on these — this just makes that state visible. */
 #level-nav button:disabled {

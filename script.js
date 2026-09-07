@@ -59,7 +59,7 @@ function loadLevel(index) {
 function updateUI(level) {
     dom.levelCounter.textContent = `Level ${level.id} of ${LEVELS.length}`;
     dom.instruction.textContent = level.instruction;
-    dom.attempts.textContent = currentAttempts;
+    dom.attempts.textContent = `Attempts: ${currentAttempts}`;
 
     // Hide feedback and next button initially
     dom.nextBtn.classList.add('hidden');
@@ -190,7 +190,7 @@ function showFeedback(isCorrect) {
         renderLevelNav();
     } else {
         currentAttempts++;
-        dom.attempts.textContent = currentAttempts;
+        dom.attempts.textContent = `Attempts: ${currentAttempts}`;
         dom.feedback.textContent = "Not quite... Try again!";
         dom.feedback.classList.add('error');
         
@@ -220,9 +220,15 @@ function renderLevelNav() {
     LEVELS.forEach((level, index) => {
         const btn = document.createElement('button');
         btn.textContent = level.id;
-        
+        btn.setAttribute('aria-label', `Level ${level.id}`);
+
         if (index < savedLevel) {
             btn.classList.add('completed');
+        }
+
+        if (index === currentLevelIndex) {
+            btn.classList.add('current');
+            btn.setAttribute('aria-current', 'step');
         }
 
         // Only allow clicking on unlocked or current levels
@@ -234,7 +240,7 @@ function renderLevelNav() {
         } else {
             btn.disabled = true;
         }
-        
+
         dom.levelNav.appendChild(btn);
     });
 }
