@@ -206,6 +206,7 @@ h1, h2, h3, h4, h5, h6 {
      width: 100% of .board-column (which carries the actual 600px/max-width:100%
      sizing) rather than its own fixed width. */
   width: 100%;
+
   /* aspect-ratio needs a bare unitless number, not a px length, so this
      can't reference var(--board-height) directly — keep this number in
      sync with --board-height's value by hand if that ever changes */
@@ -381,8 +382,7 @@ h1, h2, h3, h4, h5, h6 {
    levels with fewer controls, like level 1). */
 #controls {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
   gap: 0.6rem 1rem;
 }
 
