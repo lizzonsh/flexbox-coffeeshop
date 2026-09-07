@@ -24,7 +24,12 @@ jobs:
       - name: Lint CSS
         run: |
           cat > .stylelintrc.json <<'EOF'
-          { "extends": "stylelint-config-standard" }
+          {
+            "extends": "stylelint-config-standard",
+            "rules": {
+              "selector-class-pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$"
+            }
+          }
           EOF
           npx stylelint "**/*.css"
 
@@ -44,6 +49,7 @@ jobs:
                   localStorage: "readonly",
                   console: "readonly",
                   alert: "readonly",
+                  setTimeout: "readonly",
                   LEVELS: "readonly",
                   OPTIONS: "readonly"
                 }

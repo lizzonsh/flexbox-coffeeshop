@@ -24,14 +24,7 @@
 
       <!-- The board: the flex container itself. The logic adds/removes a class here based on the player's solution. -->
       <div class="board-wrapper">
-        <div id="board">
-          <!-- DELETE ME: temporary dummy items for checking the design in DevTools. Remove before the logic is ready. -->
-          <div class="item item--cup">☕</div>
-          <div class="item item--pastry">🥐</div>
-          <div class="item item--cookie">🍪</div>
-          <div class="item item--cake">🍰</div>
-          <!-- /DELETE ME -->
-        </div>
+        <div id="board"></div>
       </div>
 
     </section>
@@ -43,12 +36,10 @@
 
       <!-- Intentionally empty — script.js's renderLevelNav() rebuilds this with
            one <button> per level on every load/level change (see its
-           dom.levelNav.innerHTML = "" at the top of that function). It
-           already adds a .completed class and a native `disabled` attribute
-           per button; styling for those two states lives below. It does NOT
-           currently mark which button is the active level, or set
-           aria-current/aria-label — those need a script.js change, not CSS,
-           since there's no DOM hook yet for CSS to key off. -->
+           dom.levelNav.innerHTML = "" at the top of that function). It adds
+           a .completed class for finished levels, an .active class plus
+           aria-current="step" for the current level, and a native `disabled`
+           attribute for locked ones — styling for all three lives below. -->
       <nav id="level-nav" aria-label="Level navigation"></nav>
 
       <p id="instruction">Loading instructions...</p>

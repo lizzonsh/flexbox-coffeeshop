@@ -6,6 +6,11 @@ const ICONS = {
     "cake": "🍰"
 };
 
+// Element used to measure available width for the board's responsive scale.
+// Not part of the id-based `dom` map below since it's a structural/CSS
+// element, not one of the ids the design contract specifies.
+const boardWrapper = document.querySelector('.board-wrapper');
+
 // DOM Elements object mapping based on the spec contract
 const dom = {
     board: document.getElementById('board'),
@@ -30,9 +35,21 @@ function initGame() {
     if (currentLevelIndex >= LEVELS.length) {
         currentLevelIndex = 0;
     }
-    
+
     bindEvents();
+    updateBoardScale();
+    window.addEventListener('resize', updateBoardScale);
     loadLevel(currentLevelIndex);
+}
+
+// #board is logically always 600x400 (its own fixed width/height never
+// change) — on screens narrower than that, it's scaled down visually via
+// CSS transform instead. This computes that scale factor from how much
+// width .board-wrapper actually has available, and exposes it as a CSS
+// custom property for the transform: scale() rule in style.css to use.
+function updateBoardScale() {
+    const scale = Math.min(boardWrapper.clientWidth / 600, 1);
+    document.documentElement.style.setProperty('--board-scale', scale);
 }
 
 // Bind static event listeners once
@@ -60,6 +77,11 @@ function updateUI(level) {
     dom.levelCounter.textContent = `Level ${level.id} of ${LEVELS.length}`;
     dom.instruction.textContent = level.instruction;
     dom.attempts.textContent = `Attempts: ${currentAttempts}`;
+
+    // Undo showGameComplete()'s hiding of these — otherwise navigating to a
+    // level from the nav bar after finishing the game leaves them hidden
+    dom.checkBtn.classList.remove('hidden');
+    dom.resetBtn.classList.remove('hidden');
 
     // Hide feedback and next button initially
     dom.nextBtn.classList.add('hidden');
@@ -89,25 +111,22 @@ function renderBoard(level) {
 
 
 // Build the select dropdowns dynamically based on level.controls
-// Build the select dropdowns dynamically based on level.controls
 function renderControls(level) {
     dom.controls.innerHTML = "";
 
     level.controls.forEach(controlType => {
         // Create a wrapper for the label and select element
         const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex';
-        wrapper.style.flexDirection = 'column';
-        wrapper.style.marginBottom = '10px';
+        wrapper.className = 'control-group';
 
         // Create the label dynamically based on the control type
         const label = document.createElement('label');
         label.textContent = controlType;
-        label.style.fontWeight = 'bold';
-        label.style.marginBottom = '4px';
 
         const selectElement = document.createElement('select');
         selectElement.dataset.property = controlType;
+        selectElement.id = `control-${controlType}`;
+        label.htmlFor = selectElement.id;
 
         // Default empty option
         const defaultOption = document.createElement('option');
@@ -185,8 +204,10 @@ function showFeedback(isCorrect) {
         dom.feedback.classList.add('success');
         dom.nextBtn.classList.remove('hidden');
         
-        // Save progress to local storage
-        localStorage.setItem('coffeeGameLevel', currentLevelIndex + 1);
+        // Save progress, but never regress it — replaying an earlier level
+        // must not re-lock levels already unlocked past this one
+        const savedLevel = parseInt(localStorage.getItem('coffeeGameLevel')) || 0;
+        localStorage.setItem('coffeeGameLevel', Math.max(savedLevel, currentLevelIndex + 1));
         renderLevelNav();
     } else {
         currentAttempts++;
@@ -227,7 +248,7 @@ function renderLevelNav() {
         }
 
         if (index === currentLevelIndex) {
-            btn.classList.add('current');
+            btn.classList.add('active');
             btn.setAttribute('aria-current', 'step');
         }
 
