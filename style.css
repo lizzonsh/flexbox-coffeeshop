@@ -8,36 +8,40 @@
 
 html {
   scroll-behavior: smooth;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--clay) var(--cream); /* Firefox: thumb, track */
 
-  /* Reserves the scrollbar's width whether or not it's actually needed.
-     Without this, going from a level with fewer control dropdowns to one
-     with more (3→4, 6→7 — the only two transitions where the count goes up)
-     can grow .control-panel just enough to cross the threshold where the
-     page needs a vertical scrollbar. That scrollbar appearing shrinks the
-     usable page width, and body's `cover`-sized background photo
-     recalculates against that new width — visibly shifting. Reserving the
-     gutter always means that width never changes based on content height. */
-  scrollbar-gutter: stable;
-}
+  /* body is height: 100dvh with overflow: hidden (below) rather than
+     filling html naturally, so html needs its own height — otherwise the
+     browser's default white shows through wherever html's own box extends
+     past body's. */
+  height: 100%;
 
-html::-webkit-scrollbar {
-  width: 10px;
-}
+  /* the cafe photo at its natural framing (`cover`, not zoomed in), positioned
+     left so its green corrugated panel shows on that side. A top vignette
+     is layered over it so the header text stays readable against whatever
+     part of the photo ends up behind it.
 
-html::-webkit-scrollbar-track {
-  background: var(--cream);
-}
+     Lives on html, not body: body's box (height: 100dvh) can end up
+     slightly smaller than the actual viewport in some browsers, and a
+     background only ever paints within its own element's box — background-
+     attachment: fixed changes what it's sized/positioned against, not
+     where it's allowed to paint. Any sliver of viewport outside body's box
+     would show html's background instead, so this needs to be the same
+     image, not a flat fallback color, or that sliver would be a visible
+     seam. body itself is background: transparent below.
 
-html::-webkit-scrollbar-thumb {
-  background: var(--clay);
-  border-radius: 999px;
-  border: 2px solid var(--cream);
-}
+     Note: .game-layout below now centers the board+panel pair rather than
+     anchoring it to the left edge, so the board no longer reliably tracks
+     this photo's green panel at every viewport width — see that rule's
+     own comment.
 
-html::-webkit-scrollbar-thumb:hover {
-  background: var(--espresso);
+     background-attachment: fixed also matters beyond its usual "parallax"
+     effect: it changes what `cover` sizes against — the viewport instead
+     of the element's own box, which is what keeps the image's effective
+     zoom constant regardless of how tall the page's content gets. */
+  background:
+    linear-gradient(180deg, rgb(62 42 32 / 60%) 0%, rgb(62 42 32 / 25%) 15%, transparent 40%) fixed,
+    url('coffee-shop-mimi.JPEG') left center / cover no-repeat fixed,
+    var(--cream);
 }
 
 /* the six palette values below are a contract with the rest of the repo —
@@ -54,8 +58,8 @@ html::-webkit-scrollbar-thumb:hover {
   /* #board's actual size — drives its own width/height, .board-wrapper's
      aspect-ratio, and .control-panel's height, all three kept in sync so
      the board and panel are genuinely the same size, not just similar. */
-  --board-width: 600px;
-  --board-height: 480px;
+  --board-width: 540px;
+  --board-height: 400px;
 }
 
 * {
@@ -68,30 +72,25 @@ body {
   font-weight: 400;
   font-style: normal;
   margin: 0;
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   color: var(--espresso);
+  /* the actual background lives on html now — see its rule for why */
+  background: transparent;
+}
 
-  /* the cafe photo at its natural framing (`cover`, not zoomed in), positioned
-     left so its green corrugated panel sits under the board. A top vignette
-     is layered over it so the header text stays readable against whatever
-     part of the photo ends up behind it.
-
-     Alignment with the board is handled in .game-layout below (left-anchored
-     instead of centered) rather than by zooming this image — that keeps the
-     photo's actual framing intact instead of cropping into it.
-
-     background-attachment: fixed matters here beyond its usual "parallax"
-     effect: it also changes what `cover` sizes against — the viewport
-     instead of body's own box. body's height genuinely varies between
-     levels (more control dropdowns, longer instruction text), and without
-     this, `cover` would recompute against that changing height, changing
-     the image's effective zoom level from level to level. Anchoring to the
-     viewport means the image's size only ever depends on the window's own
-     size, not on how tall the page's content happens to be right now. */
-  background:
-    linear-gradient(180deg, rgb(62 42 32 / 60%) 0%, rgb(62 42 32 / 25%) 15%, transparent 40%) fixed,
-    url('coffee-shop-mimi.JPEG') left center / cover no-repeat fixed,
-    var(--cream);
+/* body's overflow: hidden above assumes the page's content actually fits
+   the viewport at 100dvh. On a short window (limited vertical room) or a
+   narrow one (.game-layout stacks to a column, needing more height), that
+   assumption can be false — this restores normal scrolling specifically in
+   those cases, so content that doesn't fit stays reachable instead of
+   being silently clipped. */
+@media (max-height: 700px), (max-width: 720px) {
+  body {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -100,14 +99,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .site-header {
-  /* Centered on the whole page — deliberately not aligned with .game-layout
-     below, which is left-anchored so the board tracks the photo's green
-     panel. width: fit-content + margin: auto centers this independently of
-     that, same technique as .board-hint below. */
+  /* Centered on the whole page independently of .game-layout below —
+     width: fit-content + margin: auto, same technique as .board-hint. */
   width: fit-content;
   max-width: calc(100% - 2rem);
-  margin: 2rem auto 1.25rem;
-  padding: 1.5rem 2.5rem;
+  margin: 1.25rem auto 1rem;
+  padding: 1rem 2rem;
   background: rgb(255 255 255 / 35%);
   backdrop-filter: blur(12px);
   border: 1px solid rgb(255 255 255 / 50%);
@@ -121,7 +118,7 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 0 0.25rem;
   font-family: "Instrument Serif", serif;
   font-weight: 400;
-  font-size: 2.75rem;
+  font-size: 2.25rem;
   color: var(--rose);
 }
 
@@ -155,7 +152,7 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   align-items: flex-start;
   gap: 2.5rem;
-  padding: 1.5rem 2rem 2rem;
+  padding: 1.5rem 2rem 0;
 }
 
 @media (width <= 720px) {
@@ -183,8 +180,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* sits above .game-layout, not inside it — positioned independently of the
    board/panel row so it never affects their top alignment. Centered on the
-   whole page, same as .site-header above and for the same reason: it's
-   deliberately not aligned with the left-anchored row underneath it. */
+   whole page, same technique as .site-header above. */
 .board-hint {
   width: fit-content;
   max-width: var(--board-width);
@@ -203,14 +199,15 @@ h1, h2, h3, h4, h5, h6 {
 .board-wrapper {
   /* Wraps #board to give it a fixed spot in the layout even when #board itself
      is visually shrunk with transform: scale() on narrow screens (see media query below).
-     width: 100% of .board-column (which carries the actual 600px/max-width:100%
+     width: 100% of .board-column (which carries the actual 540px/max-width:100%
      sizing) rather than its own fixed width. */
   width: 100%;
 
   /* aspect-ratio needs a bare unitless number, not a px length, so this
-     can't reference var(--board-height) directly — keep this number in
-     sync with --board-height's value by hand if that ever changes */
-  aspect-ratio: 600 / 480;
+     can't reference var(--board-width)/var(--board-height) directly — keep
+     these two numbers in sync with those variables' values by hand if
+     either ever changes */
+  aspect-ratio: 540 / 400;
   overflow: hidden;
 }
 
@@ -268,14 +265,16 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
 }
 
-/* Screens narrower than 600px: shrink visually with transform, not with width,
-   so the items inside never wrap to a new row and behave identically at any screen size.
+/* Screens narrower than 540px (#board's own width): shrink visually with
+   transform, not with width, so the items inside never wrap to a new row
+   and behave identically at any screen size.
    --board-scale is computed in script.js's updateBoardScale() from
-   .board-wrapper's actual clientWidth ÷ 600, on load and on resize — CSS
+   .board-wrapper's actual clientWidth ÷ 540, on load and on resize — CSS
    alone can't do this division (calc() can't divide a length by a length
    to get a unitless scale factor). The , 1 fallback keeps #board at full
-   size if the variable isn't set yet for any reason. */
-@media (width <= 600px) {
+   size if the variable isn't set yet for any reason. Both this breakpoint
+   and the 540 in that JS division must match #board's actual width. */
+@media (width <= 540px) {
   #board {
     transform: scale(var(--board-scale, 1));
   }

@@ -42,13 +42,14 @@ function initGame() {
     loadLevel(currentLevelIndex);
 }
 
-// #board is logically always 600x400 (its own fixed width/height never
+// #board is logically always 540x400 (its own fixed width/height never
 // change) — on screens narrower than that, it's scaled down visually via
 // CSS transform instead. This computes that scale factor from how much
 // width .board-wrapper actually has available, and exposes it as a CSS
 // custom property for the transform: scale() rule in style.css to use.
+// 540 here must match --board-width in style.css's :root.
 function updateBoardScale() {
-    const scale = Math.min(boardWrapper.clientWidth / 600, 1);
+    const scale = Math.min(boardWrapper.clientWidth / 540, 1);
     document.documentElement.style.setProperty('--board-scale', scale);
 }
 
