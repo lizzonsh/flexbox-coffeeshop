@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shir and Elizabeth's Coffee Shop — Flexbox Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <h1>Shir and Elizabeth's Coffee Shop</h1>
+    <p class="subtitle">Arrange the counter with Flexbox</p>
+  </header>
+
+  <main class="game-layout">
+
+    <!-- The board: the flex container itself. The logic adds/removes a class here based on the player's solution. -->
+    <section class="board-wrapper">
+      <div id="board">
+        <!-- DELETE ME: temporary dummy items for checking the design in DevTools. Remove before the logic is ready. -->
+        <div class="item item--cup">☕</div>
+        <div class="item item--pastry">🥐</div>
+        <div class="item item--cookie">🍪</div>
+        <div class="item item--cake">🍰</div>
+        <!-- /DELETE ME -->
+      </div>
+    </section>
+
+    <!-- Control panel: everything the logic reads from and writes to -->
+    <aside class="control-panel">
+
+      <p id="level-counter">Level 1 of 8</p>
+
+      <p id="instruction">Loading instructions...</p>
+
+      <!-- Intentionally empty — the logic generates the selects into it based on the current level's controls -->
+      <div id="controls"></div>
+
+      <p id="attempts">Attempts: 0</p>
+
+      <!-- Intentionally empty — the logic writes the success/error message here and adds class .success or .error -->
+      <div id="feedback"></div>
+
+      <div class="button-row">
+        <button id="check-btn" type="button">Check</button>
+        <button id="reset-btn" type="button">Reset Level</button>
+        <!-- Hidden by default via class="hidden"; the logic reveals it on success -->
+        <button id="next-btn" type="button" class="hidden">Next Level</button>
+      </div>
+
+      <!-- Intentionally empty — the logic generates a button/link per level, and adds class="completed" to finished levels -->
+      <nav id="level-nav" aria-label="Level navigation"></nav>
+
+    </aside>
+
+  </main>
+
+</body>
+</html>

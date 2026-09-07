@@ -1,0 +1,375 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap');
+
+/* ==========================================================================
+   The Coffee Shop — styles
+   ========================================================================== */
+
+/* ---------- base ---------- */
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--clay) var(--cream); /* Firefox: thumb, track */
+}
+
+html::-webkit-scrollbar {
+  width: 10px;
+}
+
+html::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--clay);
+  border-radius: 999px;
+  border: 2px solid var(--cream);
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--espresso);
+}
+
+/* the six palette values below are a contract with the rest of the repo —
+   values and names must stay exactly as specced, only how they're used here
+   is up for restyling */
+:root {
+  --cream:    #F5EDE4;  /* page background */
+  --counter:  #C9A88A;  /* the counter */
+  --espresso: #3E2A20;  /* text */
+  --rose:     #D4A5A5;  /* buttons, highlights */
+  --sage:     #8FA68E;  /* success */
+  --clay:     #C77B62;  /* error */
+
+  /* Board size is fixed per the spec document, not content-dependent */
+  --board-width: 600px;
+  --board-height: 400px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Schibsted Grotesk", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  margin: 0;
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+button:focus-visible,
+#level-nav > *:focus-visible,
+#controls select:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: var(--espresso);
+}
+
+.site-header {
+  text-align: center;
+  padding: 2rem 1rem 0.5rem;
+}
+
+/* the shop name leans on the serif accent face, same as a wordmark would */
+.site-header h1 {
+  margin: 0 0 0.25rem;
+  font-family: "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 2.75rem;
+  color: var(--rose);
+}
+
+.subtitle {
+  margin: 0;
+  font-family: "Instrument Serif", serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--espresso);
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   Layout: board + control panel
+   Side by side on desktop; the panel drops below the board on mobile.
+   This layout is "regular" page flexbox — unrelated to the inner #board container.
+   ========================================================================== */
+
+.game-layout {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2.5rem;
+  padding: 2rem 1rem 4rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .game-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* ==========================================================================
+   The board (#board)
+   ========================================================================== */
+
+.board-wrapper {
+  /* Wraps #board to give it a fixed spot in the layout even when #board itself
+     is visually shrunk with transform: scale() on narrow screens (see media query below) */
+  width: var(--board-width);
+  max-width: 100%;
+  aspect-ratio: 600 / 400;
+  overflow: hidden;
+}
+
+#board {
+  width: var(--board-width);
+  height: var(--board-height);
+  max-width: none;
+  background: var(--counter);
+  background-image:
+    linear-gradient(0deg, rgba(0, 0, 0, 0.06), transparent 40%);
+  border: 3px solid var(--espresso);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 8px 20px rgb(62 42 32 / 20%);
+  transform-origin: top left;
+
+  /* display: flex is intentionally not set here — that's the default (block)
+     the player has to fix herself in level 1. The logic adds/replaces
+     properties based on her choices. */
+}
+
+/* Screens narrower than 600px: shrink visually with transform, not with width,
+   so the items inside never wrap to a new row and behave identically at any screen size.
+   2rem = the total side padding of .game-layout (1rem each side), which eats
+   into the viewport width available to .board-wrapper before it reaches #board. */
+@media (max-width: 600px) {
+  #board {
+    transform: scale(calc((100vw - 2rem) / 600px));
+  }
+}
+
+/* ==========================================================================
+   Items on the counter
+   Critical: different heights between item types, otherwise align-items
+   isn't visible at all (levels 4, 7).
+   ========================================================================== */
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  font-size: 1.75rem;
+  background: var(--cream);
+  border: 1px solid var(--counter);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgb(62 42 32 / 18%);
+}
+
+.item--cup {
+  height: 60px;
+}
+
+.item--pastry {
+  height: 85px;
+}
+
+.item--cookie {
+  height: 45px;
+}
+
+.item--cake {
+  height: 110px;
+}
+
+/* ==========================================================================
+   Control panel — styled like a floating card, same language as the board
+   ========================================================================== */
+
+.control-panel {
+  width: 320px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #fff;
+  border: 1px solid var(--counter);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgb(62 42 32 / 12%);
+}
+
+#level-counter {
+  margin: 0;
+  font-weight: 700;
+  color: var(--espresso);
+  opacity: 0.7;
+}
+
+#instruction {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+/* #controls is filled dynamically with selects by the logic */
+#controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+#controls select {
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--counter);
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--espresso);
+  background: var(--cream);
+}
+
+#attempts {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+#feedback {
+  min-height: 1.4em;
+  font-weight: 600;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* pill-shaped buttons with a soft lift on hover */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.4rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--rose);
+  box-shadow: 0 6px 14px rgb(62 42 32 / 20%);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px rgb(62 42 32 / 24%);
+}
+
+#check-btn {
+  background: var(--espresso);
+}
+
+#reset-btn {
+  background: var(--rose);
+}
+
+#next-btn {
+  background: var(--sage);
+}
+
+/* pill-shaped strip of level links, echoing the button-row above */
+#level-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--counter);
+}
+
+#level-nav > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--counter);
+  background: var(--cream);
+  color: var(--espresso);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+#level-nav > *:hover {
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   State classes the logic adds/removes — don't rely on any DOM specifics
+   here, just style the class itself.
+   ========================================================================== */
+
+#feedback.success {
+  color: var(--sage);
+}
+
+#feedback.error {
+  color: var(--clay);
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+
+#board.shake {
+  animation: shake 500ms;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#level-nav .completed {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: #fff;
+}
+
+/* ---------- accessibility ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  #board.shake,
+  button,
+  #level-nav > * {
+    animation: none;
+    transition: none;
+  }
+}
