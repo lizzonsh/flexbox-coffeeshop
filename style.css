@@ -73,7 +73,6 @@ body {
 }
 
 button:focus-visible,
-#level-nav > *:focus-visible,
 #controls select:focus-visible {
   outline: 2px solid var(--espresso);
   outline-offset: 3px;
@@ -422,103 +421,83 @@ button:hover {
 }
 
 /* ==========================================================================
-   Level switcher: [prev arrow] [select showing "Level N of M"] [next arrow]
-   Native <option> elements can't be meaningfully styled (no border-radius,
-   inconsistent color support across browsers/OS), which is why completion
-   is marked with a checkmark character in the option's text rather than a
-   CSS class — a class on <option> would barely render anywhere.
+   Level switcher: one round numbered button per level, built by
+   script.js's renderLevelNav() (not the select/arrow design from earlier —
+   that's been replaced by the actual implementation). That function already
+   gives us two hooks to style off: a .completed class, and the native
+   `disabled` attribute on locked levels' buttons. Every other button (not
+   completed, not disabled) is implicitly "unlocked, not yet done" — no
+   separate class needed for that state, it's just the button's own default
+   look below.
 
-   What the logic needs to do here:
-   - Fill #level-select with one <option value="N"> per level, value = level
-     index. Label text: "Level N of M", with " ✓" appended for completed ones.
-   - Add `disabled` to the <option> for any level the player hasn't reached
-     yet. Leave completed levels AND the current level enabled — the current
-     level's option is the one that's selected, so it must stay selectable.
-   - Keep #level-select's selected option in sync whenever the active level
-     changes from elsewhere (e.g. the "Next Level" button).
-   - Listen for #level-select's `change` event to jump to the chosen level.
-   - On #level-prev / #level-next click, move to the nearest enabled option
-     in that direction (don't assume it's always the immediate neighbor).
-   - Set `disabled` on #level-prev when there's no enabled option before the
-     current one, and on #level-next when there's none after it.
-   ========================================================================== */
+   No "currently active level" state here on purpose: script.js doesn't mark
+   the current button in any way (no class, no aria-current), so there is no
+   DOM hook for CSS to key off yet. Adding one needs a change on the JS side. */
 
 #level-nav {
   display: flex;
-  align-items: stretch;
-  width: 100%; /* fills .level-block, its parent now */
-  border: 1px solid var(--espresso);
-  border-radius: 8px; /* square corners, not the pill shape used elsewhere */
-  overflow: hidden;
-  background: var(--espresso);
-}
-
-#level-prev,
-#level-next {
-  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  flex-shrink: 0;
-  padding: 0;
-  border-radius: 0;
-  background: var(--counter);
-  box-shadow: none;
-}
-
-#level-prev:hover:not(:disabled),
-#level-next:hover:not(:disabled) {
-  background: var(--rose);
-  transform: none; /* the generic button hover-lift doesn't fit a flush bar segment */
-}
-
-#level-prev:disabled,
-#level-next:disabled {
-  background: var(--counter);
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* solid CSS triangles instead of an emoji/icon font, so they stay crisp and
-   colored to match the theme at any size */
-#level-prev::before,
-#level-next::before {
-  content: "";
-  width: 0;
-  height: 0;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-}
-
-#level-prev::before {
-  border-right: 8px solid var(--cream);
-  margin-right: 2px;
-}
-
-#level-next::before {
-  border-left: 8px solid var(--cream);
-  margin-left: 2px;
-}
-
-#level-select {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  border-radius: 0;
-  padding: 0.5rem 0.75rem;
+  gap: 8px;
+  padding: 6px;
+  overflow-x: auto; /* scrolls instead of squeezing/overflowing on narrow panels */
+  border: 1px solid var(--espresso);
+  border-radius: 12px;
   background: var(--espresso);
-  color: var(--cream);
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-align: center;
-  text-align-last: center; /* Chrome/Firefox: centers the closed select's text (text-align alone only affects the open dropdown) */
-  cursor: pointer;
+  /* thin scrollbar for that horizontal scroll case, matching the rest of the page */
+  scrollbar-width: thin;
+  scrollbar-color: var(--rose) transparent;
 }
 
-#level-select:disabled {
+#level-nav::-webkit-scrollbar {
+  height: 6px;
+}
+
+#level-nav::-webkit-scrollbar-thumb {
+  background: var(--rose);
+  border-radius: 999px;
+}
+
+/* one level button: perfectly round (equal width/height via aspect-ratio,
+   not a stretched oval), default "unlocked, not completed" look */
+#level-nav button {
+  flex-shrink: 0;
+  width: 40px;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: var(--counter);
+  color: var(--espresso);
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: none;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+#level-nav button:hover:not(:disabled) {
+  background: var(--rose);
+  transform: translateY(-2px);
+}
+
+#level-nav button:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
+
+/* completed: filled in solid rose, white text — reads as "done" at a glance */
+#level-nav button.completed {
+  background: var(--rose);
+  color: #fff;
+}
+
+/* locked: pale and inert. `disabled` already blocks clicks/keyboard focus and
+   is what script.js sets on these — this just makes that state visible. */
+#level-nav button:disabled {
+  background: var(--counter);
+  color: var(--espresso);
+  opacity: 0.35;
   cursor: not-allowed;
-  opacity: 0.6;
+  transform: none;
 }
 
 /* ==========================================================================

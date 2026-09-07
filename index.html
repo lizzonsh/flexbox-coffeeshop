@@ -41,19 +41,15 @@
 
       <p id="level-counter">Level 1 of 8</p>
 
-      <!-- The logic owns everything dynamic inside #level-nav: the <option>s
-           (text, disabled state, which one is selected) and the
-           enabled/disabled state of the two arrow buttons. See the CSS
-           comment above #level-nav for the full list of what's expected here. -->
-      <nav id="level-nav" aria-label="Level navigation">
-        <button id="level-prev" type="button" aria-label="Previous level"></button>
-
-        <label for="level-select" class="visually-hidden">Choose a level</label>
-        <!-- Intentionally empty — the logic fills this with one <option> per level -->
-        <select id="level-select"></select>
-
-        <button id="level-next" type="button" aria-label="Next level"></button>
-      </nav>
+      <!-- Intentionally empty — script.js's renderLevelNav() rebuilds this with
+           one <button> per level on every load/level change (see its
+           dom.levelNav.innerHTML = "" at the top of that function). It
+           already adds a .completed class and a native `disabled` attribute
+           per button; styling for those two states lives below. It does NOT
+           currently mark which button is the active level, or set
+           aria-current/aria-label — those need a script.js change, not CSS,
+           since there's no DOM hook yet for CSS to key off. -->
+      <nav id="level-nav" aria-label="Level navigation"></nav>
 
       <p id="instruction">Loading instructions...</p>
 
@@ -76,8 +72,8 @@
 
   </main>
 
-  <script src="script.js" type="module"></script>
-  <script src="levels.js" type="module"></script>
+  <script src="levels.js"></script>
+  <script src="script.js"></script>
 
 </body>
 </html>
