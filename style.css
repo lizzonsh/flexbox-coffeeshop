@@ -51,9 +51,11 @@ html::-webkit-scrollbar-thumb:hover {
   --sage:     #8FA68E;  /* success */
   --clay:     #C77B62;  /* error */
 
-  /* Board size is fixed per the spec document, not content-dependent */
+  /* #board's actual size — drives its own width/height, .board-wrapper's
+     aspect-ratio, and .control-panel's height, all three kept in sync so
+     the board and panel are genuinely the same size, not just similar. */
   --board-width: 600px;
-  --board-height: 400px;
+  --board-height: 480px;
 }
 
 * {
@@ -133,41 +135,33 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   Layout: board + control panel, mirrored across the screen.
+   Layout: board + control panel, centered together as one pair.
    This layout is "regular" page flexbox — unrelated to the inner #board container.
 
-   justify-content: space-between on exactly two fixed-size children pins
-   the first one (the board) flush to the container's start edge and the
-   second (the panel) flush to its end edge, with all the leftover space
-   collapsing into the single gap between them. Combined with equal
-   left/right padding here, that guarantees — at any viewport width, by
-   construction, not by tuning magic numbers — that the board's distance
-   from the screen's left edge exactly equals the panel's distance from the
-   screen's right edge. No max-width/margin: auto centering on this
-   container itself: that would recenter the whole row instead of anchoring
-   each side to its respective edge.
+   justify-content: center treats the board+gap+panel group as a single
+   block and centers it, giving equal margins on both sides of the screen —
+   note this means the board no longer tracks the background photo's green
+   panel (which is pinned to the left edge) on wide viewports; centering
+   the pair and anchoring it to that photo are mutually exclusive.
 
-   The board stays at its fixed 600x400 (#board's own hard-coded size,
-   required elsewhere in the project). The panel matches that exactly via
-   width: var(--board-width) and min-height: var(--board-height) on
-   .control-panel below, rather than a fluid 1fr/1fr grid — a grid would
-   still need to solve the same "make the panel the same size as a
-   fixed-size board" problem, just one layer removed. align-items:
-   flex-start lines up both boxes on the same top edge. */
+   #board's width stays fixed at 600px, but its height is --board-height
+   (480px), same as .board-wrapper's aspect-ratio and .control-panel's
+   height below — all three read the same variable so the board and panel
+   are genuinely the same size, not an approximation. */
 
 .game-layout {
   display: flex;
   flex-flow: row wrap;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-start;
   gap: 2.5rem;
-  padding: 2rem 1rem 4rem;
+  padding: 1.5rem 2rem 2rem;
 }
 
 @media (width <= 720px) {
   .game-layout {
     flex-direction: column;
-    justify-content: flex-start; /* space-between would shove the panel to the bottom of a tall column instead of stacking it right under the board */
+    justify-content: flex-start; /* center (the desktop value) would space the stacked board/panel apart vertically here instead of stacking them snugly */
     align-items: center;
   }
 }
@@ -212,7 +206,10 @@ h1, h2, h3, h4, h5, h6 {
      width: 100% of .board-column (which carries the actual 600px/max-width:100%
      sizing) rather than its own fixed width. */
   width: 100%;
-  aspect-ratio: 600 / 400;
+  /* aspect-ratio needs a bare unitless number, not a px length, so this
+     can't reference var(--board-height) directly — keep this number in
+     sync with --board-height's value by hand if that ever changes */
+  aspect-ratio: 600 / 480;
   overflow: hidden;
 }
 
@@ -341,14 +338,14 @@ h1, h2, h3, h4, h5, h6 {
    ========================================================================== */
 
 .control-panel {
-  /* matches #board's fixed footprint exactly — same variables, not a
-     separately-chosen number — so the two read as mirror images */
+  /* fixed height now, not a floor — matches .board-wrapper's outer height
+     exactly so the two boxes are the same size, not just "at least" the same */
   width: var(--board-width);
-  min-height: var(--board-height);
+  height: var(--board-height);
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 
   /* frosted glass, echoing the reeded glass dividers in the cafe photo:
      a translucent white tint plus a blur of whatever's behind it.
@@ -359,7 +356,7 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(12px);
   border: 1px solid rgb(255 255 255 / 50%);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   box-shadow: 0 8px 24px rgb(62 42 32 / 12%);
 }
 
@@ -376,15 +373,21 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.5;
 }
 
-/* #controls is filled dynamically with selects by the logic */
+/* #controls is filled dynamically with selects by the logic. row + wrap so
+   the worst case (3 controls, on levels 7 and 8) spreads across two rows
+   instead of three. No min-height here anymore — .control-panel now has a
+   fixed height, so an artificial floor on this would just be extra space
+   that has nowhere useful to go (it was the cause of the empty gap on
+   levels with fewer controls, like level 1). */
 #controls {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
 }
 
 #controls select {
-  padding: 0.5rem 0.7rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 8px;
   border: 1px solid var(--counter);
   font-family: inherit;
@@ -393,11 +396,15 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--cream);
 }
 
-/* one label + select pair, built by renderControls() in script.js */
+/* one label + select pair, built by renderControls() in script.js.
+   flex: 1 1 45% fits two per row before wrapping; margin-bottom isn't
+   needed here anymore since #controls' own gap now handles spacing
+   between wrapped items in both directions. */
 .control-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
+  flex: 1 1 45%;
+  min-width: 160px;
 }
 
 .control-group label {
@@ -420,6 +427,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+  margin-top: auto; /* pins the buttons to the bottom of .control-panel's now-fixed height */
 }
 
 /* pill-shaped buttons with a soft lift on hover */
@@ -474,33 +482,21 @@ button:focus-visible,
 
 #level-nav {
   display: flex;
+  flex-wrap: wrap; /* buttons wrap to a second row on narrow screens instead of being clipped */
   align-items: center;
-  gap: 8px;
-  padding: 6px;
-  overflow-x: auto; /* scrolls instead of squeezing/overflowing on narrow panels */
+  gap: 6px;
+  padding: 8px 10px;
+  overflow: visible; /* overflow-x: auto was clipping the active ring and hover lift vertically too */
   border: 1px solid var(--espresso);
   border-radius: 12px;
   background: var(--espresso);
-
-  /* thin scrollbar for that horizontal scroll case, matching the rest of the page */
-  scrollbar-width: thin;
-  scrollbar-color: var(--rose) transparent;
-}
-
-#level-nav::-webkit-scrollbar {
-  height: 6px;
-}
-
-#level-nav::-webkit-scrollbar-thumb {
-  background: var(--rose);
-  border-radius: 999px;
 }
 
 /* one level button: perfectly round (equal width/height via aspect-ratio,
    not a stretched oval), default "unlocked, not completed" look */
 #level-nav button {
   flex-shrink: 0;
-  width: 40px;
+  width: 32px;
   aspect-ratio: 1;
   padding: 0;
   border-radius: 50%;
