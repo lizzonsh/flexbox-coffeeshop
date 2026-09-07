@@ -13,24 +13,47 @@
     <p class="subtitle">Arrange the counter with Flexbox</p>
   </header>
 
+  <!-- Static hint, not tied to any level — the per-level instruction still lives in #instruction.
+       Lives outside .game-layout on purpose: it's not a flex item in that row, so it can't push
+       just the board down and throw off the top alignment with the control panel beside it. -->
+  <p class="board-hint">Pick Flexbox values from the panel and arrange the items to match the order.</p>
+
   <main class="game-layout">
 
-    <!-- The board: the flex container itself. The logic adds/removes a class here based on the player's solution. -->
-    <section class="board-wrapper">
-      <div id="board">
-        <!-- DELETE ME: temporary dummy items for checking the design in DevTools. Remove before the logic is ready. -->
-        <div class="item item--cup">☕</div>
-        <div class="item item--pastry">🥐</div>
-        <div class="item item--cookie">🍪</div>
-        <div class="item item--cake">🍰</div>
-        <!-- /DELETE ME -->
+    <section class="board-column">
+
+      <!-- The board: the flex container itself. The logic adds/removes a class here based on the player's solution. -->
+      <div class="board-wrapper">
+        <div id="board">
+          <!-- DELETE ME: temporary dummy items for checking the design in DevTools. Remove before the logic is ready. -->
+          <div class="item item--cup">☕</div>
+          <div class="item item--pastry">🥐</div>
+          <div class="item item--cookie">🍪</div>
+          <div class="item item--cake">🍰</div>
+          <!-- /DELETE ME -->
+        </div>
       </div>
+
     </section>
 
     <!-- Control panel: everything the logic reads from and writes to -->
     <aside class="control-panel">
 
       <p id="level-counter">Level 1 of 8</p>
+
+      <!-- The logic owns everything dynamic inside #level-nav: the <option>s
+           (text, disabled state, which one is selected) and the
+           enabled/disabled state of the two arrow buttons. See the CSS
+           comment above #level-nav for the full list of what's expected here. -->
+      <nav id="level-nav" aria-label="Level navigation">
+        <button id="level-prev" type="button" aria-label="Previous level"></button>
+
+        <label for="level-select" class="visually-hidden">Choose a level</label>
+        <!-- Intentionally empty — the logic fills this with one <option> per level -->
+        <select id="level-select"></select>
+
+        <button id="level-next" type="button" aria-label="Next level"></button>
+      </nav>
 
       <p id="instruction">Loading instructions...</p>
 
@@ -48,9 +71,6 @@
         <!-- Hidden by default via class="hidden"; the logic reveals it on success -->
         <button id="next-btn" type="button" class="hidden">Next Level</button>
       </div>
-
-      <!-- Intentionally empty — the logic generates a button/link per level, and adds class="completed" to finished levels -->
-      <nav id="level-nav" aria-label="Level navigation"></nav>
 
     </aside>
 
