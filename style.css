@@ -72,25 +72,13 @@ body {
   font-weight: 400;
   font-style: normal;
   margin: 0;
-  height: 100dvh;
-  overflow: hidden;
+  height: auto;
+  min-height: 100dvh;
+  overflow-x: hidden;
   color: var(--espresso);
+
   /* the actual background lives on html now — see its rule for why */
   background: transparent;
-}
-
-/* body's overflow: hidden above assumes the page's content actually fits
-   the viewport at 100dvh. On a short window (limited vertical room) or a
-   narrow one (.game-layout stacks to a column, needing more height), that
-   assumption can be false — this restores normal scrolling specifically in
-   those cases, so content that doesn't fit stays reachable instead of
-   being silently clipped. */
-@media (max-height: 700px), (max-width: 720px) {
-  body {
-    height: auto;
-    min-height: 100dvh;
-    overflow: auto;
-  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -141,10 +129,10 @@ h1, h2, h3, h4, h5, h6 {
    panel (which is pinned to the left edge) on wide viewports; centering
    the pair and anchoring it to that photo are mutually exclusive.
 
-   #board's width stays fixed at 600px, but its height is --board-height
-   (480px), same as .board-wrapper's aspect-ratio and .control-panel's
-   height below — all three read the same variable so the board and panel
-   are genuinely the same size, not an approximation. */
+   #board's width stays fixed at --board-width (540px), but its height is
+   --board-height (400px), same as .board-wrapper's aspect-ratio and
+   .control-panel's height below — all three read the same variable so the
+   board and panel are genuinely the same size, not an approximation. */
 
 .game-layout {
   display: flex;
@@ -243,6 +231,18 @@ h1, h2, h3, h4, h5, h6 {
 
   transform-origin: top left;
 
+  /* Shrinks #board visually with transform, not with width, so the items
+     inside never wrap to a new row and behave identically at any screen
+     size. --board-scale is computed in script.js's updateBoardScale() from
+     .board-wrapper's actual clientWidth ÷ 540, on load and on resize — CSS
+     alone can't do this division (calc() can't divide a length by a length
+     to get a unitless scale factor). The , 1 fallback keeps #board at full
+     size if the variable isn't set yet for any reason, and
+     updateBoardScale() itself clamps the value to 1, so this is safe to
+     apply unconditionally rather than needing its own width media query.
+     The 540 in that JS division must match #board's actual width. */
+  transform: scale(var(--board-scale, 1));
+
   /* display: flex is intentionally not set here — that's the default (block)
      the player has to fix herself in level 1. The logic adds/replaces
      properties based on her choices. */
@@ -263,21 +263,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 999px;
   background: rgb(0 0 0 / 28%);
   pointer-events: none;
-}
-
-/* Screens narrower than 540px (#board's own width): shrink visually with
-   transform, not with width, so the items inside never wrap to a new row
-   and behave identically at any screen size.
-   --board-scale is computed in script.js's updateBoardScale() from
-   .board-wrapper's actual clientWidth ÷ 540, on load and on resize — CSS
-   alone can't do this division (calc() can't divide a length by a length
-   to get a unitless scale factor). The , 1 fallback keeps #board at full
-   size if the variable isn't set yet for any reason. Both this breakpoint
-   and the 540 in that JS division must match #board's actual width. */
-@media (width <= 540px) {
-  #board {
-    transform: scale(var(--board-scale, 1));
-  }
 }
 
 /* ==========================================================================
@@ -345,7 +330,7 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 
   /* frosted glass, echoing the reeded glass dividers in the cafe photo:
      a translucent white tint plus a blur of whatever's behind it.
@@ -367,30 +352,43 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.7;
 }
 
+/* min-height reserves room for 3 lines at this font-size/line-height —
+   level 1's instruction is the longest of all 8 (127 characters) and is
+   the one that actually needs all 3 lines at this panel width; the others
+   fit in fewer but reserving the longest case is what keeps this from
+   changing height between levels. */
 #instruction {
   margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.5;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  min-height: 4.5em;
 }
 
 /* #controls is filled dynamically with selects by the logic. row + wrap so
    the worst case (3 controls, on levels 7 and 8) spreads across two rows
-   instead of three. No min-height here anymore — .control-panel now has a
-   fixed height, so an artificial floor on this would just be extra space
-   that has nowhere useful to go (it was the cause of the empty gap on
-   levels with fewer controls, like level 1). */
+   instead of three. Height is auto (not a fixed number) — a fixed height
+   here has to guess a number big enough for the tallest case, and any
+   guess either wastes space on shorter levels or overflows on the tallest
+   one. .button-row's margin-top: auto (below) is what actually keeps the
+   buttons pinned to the bottom of .control-panel's fixed height, so
+   #controls doesn't need to manufacture that itself.
+   align-content: flex-start keeps single-row levels' content pinned to
+   the top of this box instead of stretching to fill leftover space
+   (flex containers with multiple potential lines stretch those lines by
+   default when there's extra room in the cross axis). */
 #controls {
   display: flex;
   flex-flow: row wrap;
-  gap: 0.6rem 1rem;
+  align-content: flex-start;
+  gap: 0.5rem 0.75rem;
 }
 
 #controls select {
-  padding: 0.4rem 0.6rem;
+  padding: 0.35rem 0.5rem;
   border-radius: 8px;
   border: 1px solid var(--counter);
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--espresso);
   background: var(--cream);
 }
@@ -408,12 +406,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .control-group label {
   font-weight: bold;
-  margin-bottom: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
 }
 
 #attempts {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   opacity: 0.7;
 }
 
@@ -425,8 +424,9 @@ h1, h2, h3, h4, h5, h6 {
 .button-row {
   display: flex;
   flex-wrap: wrap;
+  flex-shrink: 0; /* keeps its own height from being compressed if the column above it runs out of room */
   gap: 0.6rem;
-  margin-top: auto; /* pins the buttons to the bottom of .control-panel's now-fixed height */
+  margin-top: auto; /* pins it to the bottom of .control-panel's fixed height, absorbing whatever #controls' row count leaves over */
 }
 
 /* pill-shaped buttons with a soft lift on hover */
@@ -434,9 +434,9 @@ button {
   cursor: pointer;
   border: none;
   border-radius: 999px;
-  padding: 0.65rem 1.4rem;
+  padding: 0.5rem 1.1rem;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #fff;
   background: var(--rose);
@@ -584,10 +584,10 @@ button:focus-visible,
 }
 
 @keyframes shake {
-  10%, 90% { transform: translateX(-2px); }
-  20%, 80% { transform: translateX(4px); }
-  30%, 50%, 70% { transform: translateX(-8px); }
-  40%, 60% { transform: translateX(8px); }
+  10%, 90% { transform: scale(var(--board-scale, 1)) translateX(-2px); }
+  20%, 80% { transform: scale(var(--board-scale, 1)) translateX(4px); }
+  30%, 50%, 70% { transform: scale(var(--board-scale, 1)) translateX(-8px); }
+  40%, 60% { transform: scale(var(--board-scale, 1)) translateX(8px); }
 }
 
 #board.shake {

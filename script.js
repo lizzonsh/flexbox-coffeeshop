@@ -33,7 +33,7 @@ let currentAttempts = 0;
 function initGame() {
     // Prevent out of bounds if localStorage has an old invalid level
     if (currentLevelIndex >= LEVELS.length) {
-        currentLevelIndex = 0;
+        currentLevelIndex = LEVELS.length - 1;
     }
 
     bindEvents();
@@ -147,9 +147,16 @@ function renderControls(level) {
             });
         }
 
-        // Apply style to the board immediately upon change
-        selectElement.addEventListener('change', applyStylesToBoard);
-        
+        // Apply style to the board immediately upon change, and clear any
+        // stale feedback/next-button state from a previous check
+        selectElement.addEventListener('change', () => {
+            applyStylesToBoard();
+            dom.feedback.classList.add('hidden');
+            dom.feedback.classList.remove('success', 'error');
+            dom.feedback.textContent = "";
+            dom.nextBtn.classList.add('hidden');
+        });
+
         // Append label and select to the wrapper, then to the DOM
         wrapper.appendChild(label);
         wrapper.appendChild(selectElement);
