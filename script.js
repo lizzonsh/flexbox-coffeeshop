@@ -118,7 +118,7 @@ function updateUI(level) {
 // Clear board and render items
 function renderBoard(level) {
     dom.board.innerHTML = "";
-    dom.board.style.cssText = ""; 
+    dom.board.style.cssText = "";
     dom.board.classList.remove('shake');
 
     // FIX: Automatically apply display: flex if the level doesn't explicitly test it
@@ -251,11 +251,14 @@ function showFeedback(isCorrect) {
         dom.feedback.textContent = "Not quite... Try again!";
         dom.feedback.classList.add('error');
         
-        // Trigger shake animation
+        // Trigger shake animation — removes the class when the CSS animation
+        // itself ends, rather than a hardcoded setTimeout duration that
+        // would have to be kept in sync by hand with style.css's `shake`
+        // keyframes' own duration.
         dom.board.classList.add('shake');
-        setTimeout(() => {
+        dom.board.addEventListener('animationend', () => {
             dom.board.classList.remove('shake');
-        }, 500);
+        }, { once: true });
     }
 }
 

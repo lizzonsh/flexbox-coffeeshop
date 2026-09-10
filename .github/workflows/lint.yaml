@@ -50,6 +50,7 @@ jobs:
                   console: "readonly",
                   alert: "readonly",
                   setTimeout: "readonly",
+                  getComputedStyle: "readonly",
                   LEVELS: "readonly",
                   OPTIONS: "readonly"
                 }

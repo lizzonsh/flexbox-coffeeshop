@@ -385,8 +385,8 @@ h1, h2, h3, h4, h5, h6 {
    here has to guess a number big enough for the tallest case, and any
    guess either wastes space on shorter levels or overflows on the tallest
    one. .button-row's margin-top: auto (below) is what actually keeps the
-   buttons pinned to the bottom of .control-panel's fixed height, so
-   #controls doesn't need to manufacture that itself.
+   buttons pinned to the bottom of .control-panel's box, so #controls
+   doesn't need to manufacture that itself.
    align-content: flex-start keeps single-row levels' content pinned to
    the top of this box instead of stretching to fill leftover space
    (flex containers with multiple potential lines stretch those lines by
@@ -441,7 +441,7 @@ h1, h2, h3, h4, h5, h6 {
   flex-wrap: wrap;
   flex-shrink: 0; /* keeps its own height from being compressed if the column above it runs out of room */
   gap: 0.6rem;
-  margin-top: auto; /* pins it to the bottom of .control-panel's fixed height, absorbing whatever #controls' row count leaves over */
+  margin-top: auto; /* pins it to the bottom of .control-panel's box, absorbing whatever #controls' row count leaves over */
 }
 
 /* pill-shaped buttons with a soft lift on hover */
@@ -475,9 +475,8 @@ button:focus-visible,
   background: var(--espresso);
 }
 
-#reset-btn {
-  background: var(--rose);
-}
+/* #reset-btn intentionally has no rule here — it stays the base `button`
+   background (--rose), so nothing to override. */
 
 #next-btn {
   background: var(--sage);
