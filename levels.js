@@ -43,7 +43,7 @@ const LEVELS = [
   // Items of varying heights so the bottom alignment is visible to the eye.
   {
     id: 4,
-    instruction: "Spread the items across the full width of the counter with equal gaps between them, all aligned to the bottom of the counter.",
+    instruction: "Spread the items across the full width of the counter with equal gaps between them and no gap at the outer edges, all aligned to the bottom of the counter.",
     items: ["cup", "pastry", "cookie", "cake"],
     controls: ["justify-content", "align-items"],
     solution: { "justify-content": "space-between", "align-items": "flex-end" }
@@ -63,7 +63,7 @@ const LEVELS = [
   // and wrap causes a real overflow to a second row, not just a theoretical one.
   {
     id: 6,
-    instruction: "Too many items for one row — spread them across a few rows, centered under each other.",
+    instruction: "Too many items for one row — spread them across several rows, with each row centered.",
     items: ["cup", "pastry", "cookie", "cake", "cup", "pastry", "cookie", "cake"],
     controls: ["flex-wrap", "justify-content"],
     solution: { "flex-wrap": "wrap", "justify-content": "center" }

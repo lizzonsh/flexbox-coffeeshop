@@ -22,6 +22,7 @@ const dom = {
     checkBtn: document.getElementById('check-btn'),
     resetBtn: document.getElementById('reset-btn'),
     nextBtn: document.getElementById('next-btn'),
+    restartBtn: document.getElementById('restart-btn'),
     levelNav: document.getElementById('level-nav')
 };
 
@@ -39,17 +40,29 @@ function initGame() {
     bindEvents();
     updateBoardScale();
     window.addEventListener('resize', updateBoardScale);
-    loadLevel(currentLevelIndex);
+
+    // Finishing the game only ever bumps coffeeGameLevel to LEVELS.length,
+    // which the clamp above folds back into a valid level index — so without
+    // this flag a refresh after completion silently re-enters the last level
+    // instead of showing the completion screen.
+    if (localStorage.getItem('coffeeGameComplete') === 'true') {
+        renderLevelNav();
+        showGameComplete();
+    } else {
+        loadLevel(currentLevelIndex);
+    }
 }
 
-// #board is logically always 540x400 (its own fixed width/height never
-// change) — on screens narrower than that, it's scaled down visually via
-// CSS transform instead. This computes that scale factor from how much
-// width .board-wrapper actually has available, and exposes it as a CSS
-// custom property for the transform: scale() rule in style.css to use.
-// 540 here must match --board-width in style.css's :root.
+// #board is logically always --board-width x --board-height (its own fixed
+// width/height never change) — on screens narrower than that, it's scaled
+// down visually via CSS transform instead. This computes that scale factor
+// from how much width .board-wrapper actually has available, and exposes it
+// as a CSS custom property for the transform: scale() rule in style.css to
+// use. Reads --board-width from computed style rather than hardcoding it, so
+// this stays in sync with style.css's :root automatically.
 function updateBoardScale() {
-    const scale = Math.min(boardWrapper.clientWidth / 540, 1);
+    const boardWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-width'));
+    const scale = Math.min(boardWrapper.clientWidth / boardWidth, 1);
     document.documentElement.style.setProperty('--board-scale', scale);
 }
 
@@ -58,12 +71,19 @@ function bindEvents() {
     dom.checkBtn.addEventListener('click', handleCheckSolution);
     dom.resetBtn.addEventListener('click', () => loadLevel(currentLevelIndex));
     dom.nextBtn.addEventListener('click', handleNextLevel);
+    dom.restartBtn.addEventListener('click', handleRestartGame);
 }
 
 // Load a specific level by its index in the array
 function loadLevel(index) {
     const level = LEVELS[index];
     if (!level) return;
+
+    // Being on any actual level means the game isn't showing its finished
+    // state anymore — clears the flag showGameComplete() sets, so navigating
+    // back to review a level (via the nav bar) doesn't get stuck re-showing
+    // the completion screen on the next refresh.
+    localStorage.removeItem('coffeeGameComplete');
 
     // Reset state for the new level
     currentAttempts = 0;
@@ -83,6 +103,10 @@ function updateUI(level) {
     // level from the nav bar after finishing the game leaves them hidden
     dom.checkBtn.classList.remove('hidden');
     dom.resetBtn.classList.remove('hidden');
+
+    // Restart only belongs on the completion screen — undo showGameComplete()
+    // revealing it as soon as the player is back on an actual level
+    dom.restartBtn.classList.add('hidden');
 
     // Hide feedback and next button initially
     dom.nextBtn.classList.add('hidden');
@@ -106,6 +130,10 @@ function renderBoard(level) {
         const itemDiv = document.createElement('div');
         itemDiv.className = `item item--${itemType}`;
         itemDiv.textContent = ICONS[itemType] || "";
+        // Purely decorative — the exercise is about layout, not item identity,
+        // so hide the emoji glyph from screen readers instead of it being
+        // read aloud as its unicode name.
+        itemDiv.setAttribute('aria-hidden', 'true');
         dom.board.appendChild(itemDiv);
     });
 }
@@ -241,6 +269,18 @@ function handleNextLevel() {
     }
 }
 
+// Wipe saved progress and start over from level 1
+function handleRestartGame() {
+    // Both keys have to be gone before loadLevel() runs below — it calls
+    // renderLevelNav(), which reads coffeeGameLevel straight from
+    // localStorage to decide which level buttons are unlocked. Clearing it
+    // after loadLevel() would still render this pass with all 8 unlocked.
+    localStorage.removeItem('coffeeGameLevel');
+    localStorage.removeItem('coffeeGameComplete');
+    currentLevelIndex = 0;
+    loadLevel(currentLevelIndex);
+}
+
 // Render navigation links for completed levels
 function renderLevelNav() {
     dom.levelNav.innerHTML = "";
@@ -276,6 +316,7 @@ function renderLevelNav() {
 
 // Handle end of game state
 function showGameComplete() {
+    localStorage.setItem('coffeeGameComplete', 'true');
     dom.instruction.textContent = "Well done! You completed all the orders.";
     dom.board.innerHTML = "";
     dom.controls.innerHTML = "";
@@ -283,7 +324,9 @@ function showGameComplete() {
     dom.checkBtn.classList.add('hidden');
     dom.resetBtn.classList.add('hidden');
     dom.feedback.classList.add('hidden');
+    dom.restartBtn.classList.remove('hidden');
     dom.levelCounter.textContent = "Finished!";
+    dom.attempts.textContent = "";
 }
 
 // Bootstrap the game

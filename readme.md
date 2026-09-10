@@ -44,6 +44,17 @@ Grid (it's a Flexbox exercise), and no bundler or module system —
 `levels.js` loads before `script.js` and exposes `LEVELS`/`OPTIONS` as
 plain globals.
 
+### Why the board doesn't just shrink
+
+The counter (`#board`) always has a fixed logical size (540×400px) — its
+own width, height, and the Flexbox layout inside it never change. On
+screens too narrow to fit that, `script.js` scales the whole board down
+visually with CSS `transform: scale()` instead of resizing it. This
+matters for the exercise: it means every item and gap keeps the exact
+same proportions and the exact same Flexbox math at any screen size —
+nothing wraps to a new row or re-centers differently just because the
+window got smaller.
+
 ## Continuous integration
 
 Pull requests into `main` from the `dev` branch are linted automatically

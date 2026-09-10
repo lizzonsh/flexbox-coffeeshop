@@ -56,8 +56,10 @@ html {
   --clay:     #C77B62;  /* error */
 
   /* #board's actual size — drives its own width/height, .board-wrapper's
-     aspect-ratio, and .control-panel's height, all three kept in sync so
-     the board and panel are genuinely the same size, not just similar. */
+     aspect-ratio, and .control-panel's min-height, all three kept in sync
+     so the board and panel are the same size in the common case (the panel
+     can still grow taller than this on content-heavy levels — see its
+     rule below). */
   --board-width: 540px;
   --board-height: 400px;
 }
@@ -131,8 +133,9 @@ h1, h2, h3, h4, h5, h6 {
 
    #board's width stays fixed at --board-width (540px), but its height is
    --board-height (400px), same as .board-wrapper's aspect-ratio and
-   .control-panel's height below — all three read the same variable so the
-   board and panel are genuinely the same size, not an approximation. */
+   .control-panel's min-height below — all three read the same variable so
+   the board and panel match in the common case (the panel's height is
+   otherwise auto, so it can grow past this on content-heavy levels). */
 
 .game-layout {
   display: flex;
@@ -149,6 +152,9 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: flex-start; /* center (the desktop value) would space the stacked board/panel apart vertically here instead of stacking them snugly */
     align-items: center;
   }
+
+  /* .control-panel's own height: auto + min-height (see its rule above)
+     already covers this width too — no override needed here anymore. */
 }
 
 /* ==========================================================================
@@ -194,7 +200,9 @@ h1, h2, h3, h4, h5, h6 {
   /* aspect-ratio needs a bare unitless number, not a px length, so this
      can't reference var(--board-width)/var(--board-height) directly — keep
      these two numbers in sync with those variables' values by hand if
-     either ever changes */
+     either ever changes. (script.js's updateBoardScale() no longer has this
+     problem — it reads --board-width via getComputedStyle instead of a
+     hardcoded number.) */
   aspect-ratio: 540 / 400;
   overflow: hidden;
 }
@@ -234,13 +242,13 @@ h1, h2, h3, h4, h5, h6 {
   /* Shrinks #board visually with transform, not with width, so the items
      inside never wrap to a new row and behave identically at any screen
      size. --board-scale is computed in script.js's updateBoardScale() from
-     .board-wrapper's actual clientWidth ÷ 540, on load and on resize — CSS
-     alone can't do this division (calc() can't divide a length by a length
-     to get a unitless scale factor). The , 1 fallback keeps #board at full
-     size if the variable isn't set yet for any reason, and
+     .board-wrapper's actual clientWidth ÷ --board-width (read via
+     getComputedStyle, so it can't drift from this file), on load and on
+     resize — CSS alone can't do this division (calc() can't divide a length
+     by a length to get a unitless scale factor). The , 1 fallback keeps
+     #board at full size if the variable isn't set yet for any reason, and
      updateBoardScale() itself clamps the value to 1, so this is safe to
-     apply unconditionally rather than needing its own width media query.
-     The 540 in that JS division must match #board's actual width. */
+     apply unconditionally rather than needing its own width media query. */
   transform: scale(var(--board-scale, 1));
 
   /* display: flex is intentionally not set here — that's the default (block)
@@ -323,10 +331,17 @@ h1, h2, h3, h4, h5, h6 {
    ========================================================================== */
 
 .control-panel {
-  /* fixed height now, not a floor — matches .board-wrapper's outer height
-     exactly so the two boxes are the same size, not just "at least" the same */
+  /* height: auto + min-height (not a fixed height) — on levels 7-8, even at
+     full desktop width, #controls' three selects wrap to two rows and the
+     panel's total content (padding + counter + nav + instruction + controls
+     + attempts + feedback + buttons + gaps) exceeds --board-height by
+     ~20px. min-height still matches .board-wrapper's outer height exactly
+     in the common (shorter-content) case, and only grows past it when the
+     content genuinely needs more room, instead of letting .button-row spill
+     out of a hard-capped box. */
   width: var(--board-width);
-  height: var(--board-height);
+  height: auto;
+  min-height: var(--board-height);
   max-width: 100%;
   display: flex;
   flex-direction: column;
@@ -466,6 +481,14 @@ button:focus-visible,
 
 #next-btn {
   background: var(--sage);
+}
+
+/* Deliberately not --rose (that's #reset-btn) — the two must read as
+   different actions, not a matched pair: Reset Level redoes the current
+   level's dropdowns, Play Again erases all saved progress and restarts
+   from level 1. */
+#restart-btn {
+  background: var(--counter);
 }
 
 /* ==========================================================================
