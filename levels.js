@@ -1,5 +1,4 @@
-// levels.js — shared data file for the "Coffee Shop" game.
-// Don't edit fields in this file without coordinating with your partner — both the logic and the design read from it.
+// levels.js — shared data: OPTIONS and LEVELS, read by script.js.
 
 // Every value each Flexbox property can take, offered as dropdown choices.
 const OPTIONS = {
@@ -31,10 +30,11 @@ const LEVELS = [
   },
 
   // Level 3 — basic flex-direction. Switches from a row layout to a column layout.
+  // Items of different heights so column vs. column-reverse are visibly different.
   {
     id: 3,
-    instruction: "Arrange the items in a single column, one above another, instead of a row.",
-    items: ["cookie", "cookie", "cookie", "cookie"],
+    instruction: "Arrange the items in a single column, top to bottom in their current order, instead of a row.",
+    items: ["cookie", "cup", "cake", "pastry"],
     controls: ["flex-direction"],
     solution: { "flex-direction": "column" }
   },
@@ -53,13 +53,13 @@ const LEVELS = [
   // Items of varying heights so the horizontal centering (across the column) is clear.
   {
     id: 5,
-    instruction: "Arrange the items in a single column, all centered across the width of the counter.",
+    instruction: "Arrange the items in a single column, in their current order, all centered across the width of the counter.",
     items: ["pastry", "cup", "cake"],
     controls: ["flex-direction", "align-items"],
     solution: { "flex-direction": "column", "align-items": "center" }
   },
 
-  // Level 6 — flex-wrap. 8 items so that on a 600px board the row actually fills up
+  // Level 6 — flex-wrap. 8 items so that on the 540px board the row actually fills up
   // and wrap causes a real overflow to a second row, not just a theoretical one.
   {
     id: 6,
@@ -69,22 +69,21 @@ const LEVELS = [
     solution: { "flex-wrap": "wrap", "justify-content": "center" }
   },
 
-  // Level 7 — reverses the row reading direction (row-reverse). On a reversed main axis,
-  // flex-start points to the right side of the counter (unlike the intuitive direction in a
-  // normal row) — that's exactly what this level tests.
+  // Level 7 — reverses the row reading direction (row-reverse); flex-end (not flex-start,
+  // which is the initial value and so gives no visible feedback) points left when reversed.
   {
     id: 7,
-    instruction: "Reverse the order of the items in the row, so they sit against the right side of the counter and are centered vertically.",
+    instruction: "Reverse the order of the items in the row, so they sit flush against the left side of the counter and are centered vertically.",
     items: ["cup", "pastry", "cookie", "cake"],
     controls: ["flex-direction", "justify-content", "align-items"],
-    solution: { "flex-direction": "row-reverse", "justify-content": "flex-start", "align-items": "center" }
+    solution: { "flex-direction": "row-reverse", "justify-content": "flex-end", "align-items": "center" }
   },
 
   // Level 8 — full combo: column-reverse + justify-content + align-items.
   // The most complex — reversed order on a column axis, centered along the column, aligned to the right.
   {
     id: 8,
-    instruction: "Reverse the order of the items in the column, center them along the counter, and align them to the right side.",
+    instruction: "Arrange the items in a column, in reverse order, centered along the counter and aligned to the right side.",
     items: ["cake", "cup", "pastry", "cookie"],
     controls: ["flex-direction", "justify-content", "align-items"],
     solution: { "flex-direction": "column-reverse", "justify-content": "center", "align-items": "flex-end" }

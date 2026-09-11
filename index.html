@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shir and Elizabeth's Coffee Shop — Flexbox Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,9 +16,7 @@
     <p class="subtitle">Arrange the counter with Flexbox</p>
   </header>
 
-  <!-- Static hint, not tied to any level — the per-level instruction still lives in #instruction.
-       Lives outside .game-layout on purpose: it's not a flex item in that row, so it can't push
-       just the board down and throw off the top alignment with the control panel beside it. -->
+  <!-- Static hint, not the per-level instruction (that's #instruction below) -->
   <p class="board-hint">Pick Flexbox values from the panel and arrange the items to match the order.</p>
 
   <main class="game-layout">
@@ -34,12 +35,7 @@
 
       <p id="level-counter">Level 1 of 8</p>
 
-      <!-- Intentionally empty — script.js's renderLevelNav() rebuilds this with
-           one <button> per level on every load/level change (see its
-           dom.levelNav.innerHTML = "" at the top of that function). It adds
-           a .completed class for finished levels, an .active class plus
-           aria-current="step" for the current level, and a native `disabled`
-           attribute for locked ones — styling for all three lives below. -->
+      <!-- Built dynamically by renderLevelNav() -->
       <nav id="level-nav" aria-label="Level navigation"></nav>
 
       <p id="instruction">Loading instructions...</p>
@@ -54,6 +50,8 @@
 
       <div class="button-row">
         <button id="check-btn" type="button">Check</button>
+        <!-- Hidden by default via class="hidden"; the logic reveals it after a few wrong attempts on the current level -->
+        <button id="hint-btn" type="button" class="hidden">Hint</button>
         <button id="reset-btn" type="button">Reset Level</button>
         <!-- Hidden by default via class="hidden"; the logic reveals it on success -->
         <button id="next-btn" type="button" class="hidden">Next Level</button>

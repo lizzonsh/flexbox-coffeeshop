@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap');
-
 /* ==========================================================================
    The Coffee Shop — styles
    ========================================================================== */
@@ -9,44 +7,19 @@
 html {
   scroll-behavior: smooth;
 
-  /* body is height: 100dvh with overflow: hidden (below) rather than
-     filling html naturally, so html needs its own height — otherwise the
-     browser's default white shows through wherever html's own box extends
-     past body's. */
+  /* html needs its own height, or the browser's default white shows past body's box. */
   height: 100%;
 
-  /* the cafe photo at its natural framing (`cover`, not zoomed in), positioned
-     left so its green corrugated panel shows on that side. A top vignette
-     is layered over it so the header text stays readable against whatever
-     part of the photo ends up behind it.
-
-     Lives on html, not body: body's box (height: 100dvh) can end up
-     slightly smaller than the actual viewport in some browsers, and a
-     background only ever paints within its own element's box — background-
-     attachment: fixed changes what it's sized/positioned against, not
-     where it's allowed to paint. Any sliver of viewport outside body's box
-     would show html's background instead, so this needs to be the same
-     image, not a flat fallback color, or that sliver would be a visible
-     seam. body itself is background: transparent below.
-
-     Note: .game-layout below now centers the board+panel pair rather than
-     anchoring it to the left edge, so the board no longer reliably tracks
-     this photo's green panel at every viewport width — see that rule's
-     own comment.
-
-     background-attachment: fixed also matters beyond its usual "parallax"
-     effect: it changes what `cover` sizes against — the viewport instead
-     of the element's own box, which is what keeps the image's effective
-     zoom constant regardless of how tall the page's content gets. */
+  /* Background lives on html, not body — body's box can end up shorter than
+     the viewport, and this way there's no gap where the fallback color
+     would show through. */
   background:
     linear-gradient(180deg, rgb(62 42 32 / 60%) 0%, rgb(62 42 32 / 25%) 15%, transparent 40%) fixed,
     url('coffee-shop-mimi.JPEG') left center / cover no-repeat fixed,
     var(--cream);
 }
 
-/* the six palette values below are a contract with the rest of the repo —
-   values and names must stay exactly as specced, only how they're used here
-   is up for restyling */
+/* Six palette values — names and values are spec'd, only usage is free. */
 :root {
   --cream:    #F5EDE4;  /* page background */
   --counter:  #C9A88A;  /* the counter */
@@ -55,11 +28,8 @@ html {
   --sage:     #8FA68E;  /* success */
   --clay:     #C77B62;  /* error */
 
-  /* #board's actual size — drives its own width/height, .board-wrapper's
-     aspect-ratio, and .control-panel's min-height, all three kept in sync
-     so the board and panel are the same size in the common case (the panel
-     can still grow taller than this on content-heavy levels — see its
-     rule below). */
+  /* Board's real size — also drives .board-wrapper's aspect-ratio and
+     .control-panel's min-height below. */
   --board-width: 540px;
   --board-height: 400px;
 }
@@ -74,13 +44,10 @@ body {
   font-weight: 400;
   font-style: normal;
   margin: 0;
-  height: auto;
   min-height: 100dvh;
   overflow-x: hidden;
   color: var(--espresso);
-
-  /* the actual background lives on html now — see its rule for why */
-  background: transparent;
+  background: transparent; /* the real background is on html above */
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -89,8 +56,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .site-header {
-  /* Centered on the whole page independently of .game-layout below —
-     width: fit-content + margin: auto, same technique as .board-hint. */
   width: fit-content;
   max-width: calc(100% - 2rem);
   margin: 1.25rem auto 1rem;
@@ -98,12 +63,11 @@ h1, h2, h3, h4, h5, h6 {
   background: rgb(255 255 255 / 35%);
   backdrop-filter: blur(12px);
   border: 1px solid rgb(255 255 255 / 50%);
-  border-radius: 20px; /* rounded-square, not a pill */
+  border-radius: 20px;
   box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
   text-align: center;
 }
 
-/* the shop name leans on the serif accent face, same as a wordmark would */
 .site-header h1 {
   margin: 0 0 0.25rem;
   font-family: "Instrument Serif", serif;
@@ -122,20 +86,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   Layout: board + control panel, centered together as one pair.
-   This layout is "regular" page flexbox — unrelated to the inner #board container.
-
-   justify-content: center treats the board+gap+panel group as a single
-   block and centers it, giving equal margins on both sides of the screen —
-   note this means the board no longer tracks the background photo's green
-   panel (which is pinned to the left edge) on wide viewports; centering
-   the pair and anchoring it to that photo are mutually exclusive.
-
-   #board's width stays fixed at --board-width (540px), but its height is
-   --board-height (400px), same as .board-wrapper's aspect-ratio and
-   .control-panel's min-height below — all three read the same variable so
-   the board and panel match in the common case (the panel's height is
-   otherwise auto, so it can grow past this on content-heavy levels). */
+   Layout: board + control panel, centered as one pair.
+   ========================================================================== */
 
 .game-layout {
   display: flex;
@@ -149,12 +101,9 @@ h1, h2, h3, h4, h5, h6 {
 @media (width <= 720px) {
   .game-layout {
     flex-direction: column;
-    justify-content: flex-start; /* center (the desktop value) would space the stacked board/panel apart vertically here instead of stacking them snugly */
+    justify-content: flex-start; /* center would space board/panel apart when stacked */
     align-items: center;
   }
-
-  /* .control-panel's own height: auto + min-height (see its rule above)
-     already covers this width too — no override needed here anymore. */
 }
 
 /* ==========================================================================
@@ -164,17 +113,12 @@ h1, h2, h3, h4, h5, h6 {
 .board-column {
   display: flex;
 
-  /* Fixed-width responsibility lives here now, not on .board-wrapper (which
-     is width: 100% of this) — needed so .board-wrapper's 100% resolves
-     against a real number, and so script.js's updateBoardScale() reads a
-     meaningful clientWidth on narrow screens. */
+  /* Owns the fixed width so .board-wrapper's 100% and updateBoardScale()'s
+     clientWidth reads have a real number to work with. */
   width: var(--board-width);
   max-width: 100%;
 }
 
-/* sits above .game-layout, not inside it — positioned independently of the
-   board/panel row so it never affects their top alignment. Centered on the
-   whole page, same technique as .site-header above. */
 .board-hint {
   width: fit-content;
   max-width: var(--board-width);
@@ -191,18 +135,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .board-wrapper {
-  /* Wraps #board to give it a fixed spot in the layout even when #board itself
-     is visually shrunk with transform: scale() on narrow screens (see media query below).
-     width: 100% of .board-column (which carries the actual 540px/max-width:100%
-     sizing) rather than its own fixed width. */
+  /* Gives #board a fixed spot in the layout even when it's scaled down. */
   width: 100%;
 
-  /* aspect-ratio needs a bare unitless number, not a px length, so this
-     can't reference var(--board-width)/var(--board-height) directly — keep
-     these two numbers in sync with those variables' values by hand if
-     either ever changes. (script.js's updateBoardScale() no longer has this
-     problem — it reads --board-width via getComputedStyle instead of a
-     hardcoded number.) */
+  /* aspect-ratio needs a bare number, so this has to match --board-width /
+     --board-height by hand if either ever changes. */
   aspect-ratio: 540 / 400;
   overflow: hidden;
 }
@@ -210,16 +147,11 @@ h1, h2, h3, h4, h5, h6 {
 #board {
   width: var(--board-width);
   height: var(--board-height);
-  max-width: none;
   position: relative; /* anchors the ::after surface line below */
   gap: 20px;
 
-  /* wood counter: thin repeating diagonal lines for grain, layered under a
-     light-to-dark sheen (lighter at the top edge, darker toward the bottom),
-     both on top of the --counter base color. Base fill is slightly
-     translucent (not solid var(--counter)) so a hint of the photo behind
-     shows through — rgba written out by hand since a gradient can't split a
-     var() into channels, same as elsewhere in this file. */
+  /* Wood-grain look: diagonal lines plus a light-to-dark sheen over the
+     base counter color. */
   background:
     repeating-linear-gradient(
       4deg,
@@ -235,41 +167,26 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1rem;
   box-shadow:
     0 8px 20px rgb(62 42 32 / 20%),
-    inset 0 -10px 14px -6px rgb(0 0 0 / 25%); /* inset shadow along the bottom edge, for depth */
-
+    inset 0 -10px 14px -6px rgb(0 0 0 / 25%);
   transform-origin: top left;
 
-  /* Shrinks #board visually with transform, not with width, so the items
-     inside never wrap to a new row and behave identically at any screen
-     size. --board-scale is computed in script.js's updateBoardScale() from
-     .board-wrapper's actual clientWidth ÷ --board-width (read via
-     getComputedStyle, so it can't drift from this file), on load and on
-     resize — CSS alone can't do this division (calc() can't divide a length
-     by a length to get a unitless scale factor). The , 1 fallback keeps
-     #board at full size if the variable isn't set yet for any reason, and
-     updateBoardScale() itself clamps the value to 1, so this is safe to
-     apply unconditionally rather than needing its own width media query. */
+  /* Shrinks the whole board visually via transform instead of width, so the
+     flex layout inside never changes. Scale factor comes from
+     updateBoardScale() in script.js. */
   transform: scale(var(--board-scale, 1));
 
-  /* display: flex is intentionally not set here — that's the default (block)
-     the player has to fix herself in level 1. The logic adds/replaces
-     properties based on her choices. */
+  /* No display set here — level 1 requires the player to add flex herself. */
 }
 
-/* Default flex row/container for every level except level 1 (which tests
-   'display' itself, via a dropdown that sets it as an inline style instead —
-   see script.js's renderBoard()). Toggled as a class rather than an inline
-   style so it isn't wiped out by applyStylesToBoard()'s inline-style reset
-   on every dropdown change. */
+/* Default flex layout for every level except level 1, which sets display
+   itself via its own dropdown. */
 .board--flex {
   display: flex;
 }
 
-/* subtle "front edge" line near the bottom of the counter — doubles as a
-   visual anchor for align-items: flex-end (levels 4, 7). position: absolute
-   is required here: without it this pseudo-element would become a real flex
-   item once #board turns into a flex container, and would get laid out
-   alongside the actual cup/pastry/cookie/cake items. */
+/* Front-edge line — also a visual anchor for align-items: flex-end
+   (levels 4, 7). Needs position: absolute, or it would become a real flex
+   item once #board turns into a flex container. */
 #board::after {
   content: "";
   position: absolute;
@@ -283,9 +200,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   Items on the counter
-   Critical: different heights between item types, otherwise align-items
-   isn't visible at all (levels 4, 7).
+   Items on the counter — different heights so align-items has
+   something visible to align (levels 4, 7).
    ========================================================================== */
 
 .item {
@@ -293,30 +209,20 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
 
-  /* width is fixed and shared by every type — only --item-height varies.
-     A rounded square, not a circle: border-radius is a fixed value, not 50%,
-     so it stays a "squircle" at any size instead of turning into an ellipse. */
+  /* Rounded square, not 50% — stays a "squircle" instead of an ellipse. */
   width: 72px;
   height: var(--item-height);
   border-radius: 14px;
   background: rgb(255 255 255 / 55%);
   border: 1px solid rgb(255 255 255 / 70%);
-
-  /* soft outer shadow (contact with the counter) + a light inset rim on top
-     (porcelain highlight) instead of a flat border */
   box-shadow:
     0 6px 10px rgb(62 42 32 / 28%),
     inset 0 2px 3px rgb(255 255 255 / 65%);
-
-  /* shared size for every type — only the container's height marks the
-     difference between items, not the emoji itself */
   font-size: 1.9rem;
 }
 
-/* --item-height is the one number that differs per type. Kept to a modest
-   52-90px range — different types need to read as one matched set, not as
-   wildly mismatched objects — while still giving align-items a real,
-   visible difference to align in levels 4 and 7. */
+/* Only --item-height differs per type — close enough to still read as one
+   matched set. */
 .item--cookie {
   --item-height: 52px;
 }
@@ -334,20 +240,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   Control panel — styled like a floating card, same language as the board.
-   Holds the level readout + switcher at the top, then the per-level
-   instruction, controls, feedback, and action buttons below.
+   Control panel — floating card holding the level readout, switcher,
+   instruction, controls, feedback, and action buttons.
    ========================================================================== */
 
 .control-panel {
-  /* height: auto + min-height (not a fixed height) — on levels 7-8, even at
-     full desktop width, #controls' three selects wrap to two rows and the
-     panel's total content (padding + counter + nav + instruction + controls
-     + attempts + feedback + buttons + gaps) exceeds --board-height by
-     ~20px. min-height still matches .board-wrapper's outer height exactly
-     in the common (shorter-content) case, and only grows past it when the
-     content genuinely needs more room, instead of letting .button-row spill
-     out of a hard-capped box. */
+  /* auto height + min-height, not fixed — some levels' content runs taller
+     than --board-height. */
   width: var(--board-width);
   height: auto;
   min-height: var(--board-height);
@@ -356,11 +255,8 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   gap: 0.6rem;
 
-  /* frosted glass, echoing the reeded glass dividers in the cafe photo:
-     a translucent white tint plus a blur of whatever's behind it.
-     backdrop-filter isn't supported in every browser (older Firefox) — where
-     it's missing, this just falls back to a plain translucent panel with no
-     blur, which still looks reasonable, just less "frosted". */
+  /* Frosted glass; falls back to a plain translucent panel where
+     backdrop-filter isn't supported. */
   background: rgb(255 255 255 / 35%);
   backdrop-filter: blur(12px);
   border: 1px solid rgb(255 255 255 / 50%);
@@ -376,11 +272,8 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.7;
 }
 
-/* min-height reserves room for 3 lines at this font-size/line-height —
-   level 1's instruction is the longest of all 8 (127 characters) and is
-   the one that actually needs all 3 lines at this panel width; the others
-   fit in fewer but reserving the longest case is what keeps this from
-   changing height between levels. */
+/* Reserves room for the longest instruction (level 4) so the panel's
+   height doesn't jump between levels. */
 #instruction {
   margin: 0;
   font-size: 0.95rem;
@@ -388,18 +281,8 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 4.5em;
 }
 
-/* #controls is filled dynamically with selects by the logic. row + wrap so
-   the worst case (3 controls, on levels 7 and 8) spreads across two rows
-   instead of three. Height is auto (not a fixed number) — a fixed height
-   here has to guess a number big enough for the tallest case, and any
-   guess either wastes space on shorter levels or overflows on the tallest
-   one. .button-row's margin-top: auto (below) is what actually keeps the
-   buttons pinned to the bottom of .control-panel's box, so #controls
-   doesn't need to manufacture that itself.
-   align-content: flex-start keeps single-row levels' content pinned to
-   the top of this box instead of stretching to fill leftover space
-   (flex containers with multiple potential lines stretch those lines by
-   default when there's extra room in the cross axis). */
+/* Selects wrap up to two rows (worst case: 3 controls on levels 7-8).
+   Height is auto so it fits any level without guessing a number. */
 #controls {
   display: flex;
   flex-flow: row wrap;
@@ -417,10 +300,19 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--cream);
 }
 
-/* one label + select pair, built by renderControls() in script.js.
-   flex: 1 1 45% fits two per row before wrapping; margin-bottom isn't
-   needed here anymore since #controls' own gap now handles spacing
-   between wrapped items in both directions. */
+/* Set by handleCheckSolution() so the player sees which property is wrong,
+   not just a generic error. Cleared on the next change to that dropdown. */
+#controls select.select--correct {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 2px rgb(143 166 142 / 35%);
+}
+
+#controls select.select--incorrect {
+  border-color: var(--clay);
+  box-shadow: 0 0 0 2px rgb(199 123 98 / 35%);
+}
+
+/* flex: 1 1 45% fits two selects per row before wrapping. */
 .control-group {
   display: flex;
   flex-direction: column;
@@ -445,15 +337,21 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
+/* Not success (--sage) or error (--clay) — a hint is a nudge, not a
+   verdict. */
+#feedback.hint {
+  color: var(--espresso);
+  font-style: italic;
+}
+
 .button-row {
   display: flex;
   flex-wrap: wrap;
-  flex-shrink: 0; /* keeps its own height from being compressed if the column above it runs out of room */
+  flex-shrink: 0;
   gap: 0.6rem;
-  margin-top: auto; /* pins it to the bottom of .control-panel's box, absorbing whatever #controls' row count leaves over */
+  margin-top: auto; /* pins the row to the bottom of the panel */
 }
 
-/* pill-shaped buttons with a soft lift on hover */
 button {
   cursor: pointer;
   border: none;
@@ -484,46 +382,44 @@ button:focus-visible,
   background: var(--espresso);
 }
 
-/* #reset-btn intentionally has no rule here — it stays the base `button`
-   background (--rose), so nothing to override. */
+/* Outlined, not filled — Hint is optional and secondary. */
+#hint-btn {
+  background: transparent;
+  color: var(--espresso);
+  border: 2px solid var(--espresso);
+  box-shadow: none;
+}
+
+#hint-btn:hover {
+  background: rgb(62 42 32 / 8%);
+}
 
 #next-btn {
   background: var(--sage);
 }
 
-/* Deliberately not --rose (that's #reset-btn) — the two must read as
-   different actions, not a matched pair: Reset Level redoes the current
-   level's dropdowns, Play Again erases all saved progress and restarts
-   from level 1. */
+/* Not --rose (that's #reset-btn) — a more drastic action gets its own color. */
 #restart-btn {
   background: var(--counter);
 }
 
 /* ==========================================================================
-   Level switcher: one round numbered button per level, built by
-   script.js's renderLevelNav() (not the select/arrow design from earlier —
-   that's been replaced by the actual implementation). That function gives
-   us three hooks to style off: a .completed class, an .active class (plus
-   aria-current="step") on the current level's button, and the native
-   `disabled` attribute on locked levels' buttons. Every other button (not
-   completed, not active, not disabled) is implicitly "unlocked, not yet
-   done" — no separate class needed for that state, it's just the button's
-   own default look below. */
+   Level switcher: one round button per level, built by renderLevelNav().
+   .completed / .active / :disabled mark state; anything else is just
+   "unlocked, not done" by default.
+   ========================================================================== */
 
 #level-nav {
   display: flex;
-  flex-wrap: wrap; /* buttons wrap to a second row on narrow screens instead of being clipped */
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   padding: 8px 10px;
-  overflow: visible; /* overflow-x: auto was clipping the active ring and hover lift vertically too */
   border: 1px solid var(--espresso);
   border-radius: 12px;
   background: var(--espresso);
 }
 
-/* one level button: perfectly round (equal width/height via aspect-ratio,
-   not a stretched oval), default "unlocked, not completed" look */
 #level-nav button {
   flex-shrink: 0;
   width: 32px;
@@ -544,8 +440,6 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
-/* locked: pale and inert. `disabled` already blocks clicks/keyboard focus and
-   is what script.js sets on these — this just makes that state visible. */
 #level-nav button:disabled {
   background: var(--counter);
   color: var(--espresso);
@@ -559,18 +453,13 @@ button:focus-visible,
   transform: translateY(-2px);
 }
 
-/* completed: filled in solid rose, white text — reads as "done" at a glance */
 #level-nav button.completed {
   background: var(--rose);
   color: #fff;
 }
 
-/* active: the current level. Comes after .completed in source order so it
-   wins if a player navigates back to an already-completed level (both
-   classes can be present at once) — same specificity, later rule takes it.
-   Dark fill + light text + a rose ring, since the bar itself is already
-   espresso-dark: a plain darker fill alone would blend into the bar, the
-   ring is what actually makes it read as "selected" at a glance. */
+/* Comes after .completed so it wins if both apply. Dark fill + rose ring
+   so it reads as "selected" against the already-dark bar. */
 #level-nav button.active {
   background: var(--espresso);
   color: var(--cream);
@@ -584,8 +473,7 @@ button:focus-visible,
 }
 
 /* ==========================================================================
-   State classes the logic adds/removes — don't rely on any DOM specifics
-   here, just style the class itself.
+   State classes the logic adds/removes
    ========================================================================== */
 
 #feedback.success {
@@ -638,7 +526,6 @@ button:focus-visible,
 
   #board.shake,
   #feedback.success,
-  .item,
   button {
     animation: none;
     transition: none;
