@@ -256,6 +256,15 @@ h1, h2, h3, h4, h5, h6 {
      properties based on her choices. */
 }
 
+/* Default flex row/container for every level except level 1 (which tests
+   'display' itself, via a dropdown that sets it as an inline style instead —
+   see script.js's renderBoard()). Toggled as a class rather than an inline
+   style so it isn't wiped out by applyStylesToBoard()'s inline-style reset
+   on every dropdown change. */
+.board--flex {
+  display: flex;
+}
+
 /* subtle "front edge" line near the bottom of the counter — doubles as a
    visual anchor for align-items: flex-end (levels 4, 7). position: absolute
    is required here: without it this pseudo-element would become a real flex

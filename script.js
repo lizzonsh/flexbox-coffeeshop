@@ -7,11 +7,11 @@ const ICONS = {
 };
 
 // Element used to measure available width for the board's responsive scale.
-// Not part of the id-based `dom` map below since it's a structural/CSS
-// element, not one of the ids the design contract specifies.
+// Not part of the id-based `dom` map below since it's a structural/layout
+// element rather than one of the game's interactive/content elements.
 const boardWrapper = document.querySelector('.board-wrapper');
 
-// DOM Elements object mapping based on the spec contract
+// Shorthand lookup for every DOM element the game reads from or writes to
 const dom = {
     board: document.getElementById('board'),
     instruction: document.getElementById('instruction'),
@@ -121,10 +121,12 @@ function renderBoard(level) {
     dom.board.style.cssText = "";
     dom.board.classList.remove('shake');
 
-    // FIX: Automatically apply display: flex if the level doesn't explicitly test it
-    if (!level.controls.includes('display')) {
-        dom.board.style.display = 'flex';
-    }
+    // Levels that don't test 'display' still need a flex row/column to show
+    // the other properties on — .board--flex supplies that default via CSS
+    // rather than an inline style, so it survives applyStylesToBoard()'s
+    // cssText reset below and doesn't fight with the level 1 dropdown that
+    // does control 'display' directly.
+    dom.board.classList.toggle('board--flex', !level.controls.includes('display'));
 
     level.items.forEach(itemType => {
         const itemDiv = document.createElement('div');
@@ -196,19 +198,14 @@ function renderControls(level) {
 // Apply selected flexbox styles from all dropdowns to the board container
 function applyStylesToBoard() {
     const allSelects = dom.controls.querySelectorAll('select');
-    const currentLevel = LEVELS[currentLevelIndex];
-    
-    // Clear existing inline styles first
+
+    // Clear existing inline styles first — .board--flex (set by renderBoard())
+    // isn't affected by this, since it's a class, not an inline style
     dom.board.style.cssText = "";
-    
-    // FIX: Re-apply the default flex if this level doesn't control 'display'
-    if (!currentLevel.controls.includes('display')) {
-        dom.board.style.display = 'flex';
-    }
-    
+
     allSelects.forEach(select => {
         if (select.value) {
-            dom.board.style[select.dataset.property] = select.value;
+            dom.board.style.setProperty(select.dataset.property, select.value);
         }
     });
 }

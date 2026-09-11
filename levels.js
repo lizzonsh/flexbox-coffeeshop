@@ -1,7 +1,7 @@
 // levels.js — shared data file for the "Coffee Shop" game.
 // Don't edit fields in this file without coordinating with your partner — both the logic and the design read from it.
 
-// All possible values for each flex property, per the spec document.
+// Every value each Flexbox property can take, offered as dropdown choices.
 const OPTIONS = {
   "display":         ["block", "flex"],
   "flex-direction":  ["row", "row-reverse", "column", "column-reverse"],
@@ -71,7 +71,7 @@ const LEVELS = [
 
   // Level 7 — reverses the row reading direction (row-reverse). On a reversed main axis,
   // flex-start points to the right side of the counter (unlike the intuitive direction in a
-  // normal row) — that's exactly what this level tests, per the RTL note in the spec document.
+  // normal row) — that's exactly what this level tests.
   {
     id: 7,
     instruction: "Reverse the order of the items in the row, so they sit against the right side of the counter and are centered vertically.",
