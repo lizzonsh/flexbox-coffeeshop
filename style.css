@@ -1,0 +1,533 @@
+/* ==========================================================================
+   The Coffee Shop — styles
+   ========================================================================== */
+
+/* ---------- base ---------- */
+
+html {
+  scroll-behavior: smooth;
+
+  /* html needs its own height, or the browser's default white shows past body's box. */
+  height: 100%;
+
+  /* Background lives on html, not body — body's box can end up shorter than
+     the viewport, and this way there's no gap where the fallback color
+     would show through. */
+  background:
+    linear-gradient(180deg, rgb(62 42 32 / 60%) 0%, rgb(62 42 32 / 25%) 15%, transparent 40%) fixed,
+    url('coffee-shop-mimi.JPEG') left center / cover no-repeat fixed,
+    var(--cream);
+}
+
+/* Six palette values — names and values are spec'd, only usage is free. */
+:root {
+  --cream:    #F5EDE4;  /* page background */
+  --counter:  #C9A88A;  /* the counter */
+  --espresso: #3E2A20;  /* text */
+  --rose:     #D4A5A5;  /* buttons, highlights */
+  --sage:     #8FA68E;  /* success */
+  --clay:     #C77B62;  /* error */
+
+  /* Board's real size — also drives .board-wrapper's aspect-ratio and
+     .control-panel's min-height below. */
+  --board-width: 540px;
+  --board-height: 400px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Schibsted Grotesk", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  margin: 0;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  color: var(--espresso);
+  background: transparent; /* the real background is on html above */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: var(--espresso);
+}
+
+.site-header {
+  width: fit-content;
+  max-width: calc(100% - 2rem);
+  margin: 1.25rem auto 1rem;
+  padding: 1rem 2rem;
+  background: rgb(255 255 255 / 35%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+  text-align: center;
+}
+
+.site-header h1 {
+  margin: 0 0 0.25rem;
+  font-family: "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 2.25rem;
+  color: var(--rose);
+}
+
+.subtitle {
+  margin: 0;
+  font-family: "Instrument Serif", serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--espresso);
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   Layout: board + control panel, centered as one pair.
+   ========================================================================== */
+
+.game-layout {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2.5rem;
+  padding: 1.5rem 2rem 0;
+}
+
+@media (width <= 720px) {
+  .game-layout {
+    flex-direction: column;
+    justify-content: flex-start; /* center would space board/panel apart when stacked */
+    align-items: center;
+  }
+}
+
+/* ==========================================================================
+   The board (#board)
+   ========================================================================== */
+
+.board-column {
+  display: flex;
+
+  /* Owns the fixed width so .board-wrapper's 100% and updateBoardScale()'s
+     clientWidth reads have a real number to work with. */
+  width: var(--board-width);
+  max-width: 100%;
+}
+
+.board-hint {
+  width: fit-content;
+  max-width: var(--board-width);
+  margin: 0 auto 1.5rem;
+  padding: 0.5rem 1.25rem;
+  background: rgb(255 255 255 / 35%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--espresso);
+}
+
+.board-wrapper {
+  /* Gives #board a fixed spot in the layout even when it's scaled down. */
+  width: 100%;
+
+  /* aspect-ratio needs a bare number, so this has to match --board-width /
+     --board-height by hand if either ever changes. */
+  aspect-ratio: 540 / 400;
+  overflow: hidden;
+}
+
+#board {
+  width: var(--board-width);
+  height: var(--board-height);
+  position: relative; /* anchors the ::after surface line below */
+  gap: 20px;
+
+  /* Wood-grain look: diagonal lines plus a light-to-dark sheen over the
+     base counter color. */
+  background:
+    repeating-linear-gradient(
+      4deg,
+      rgb(62 42 32 / 8%) 0,
+      rgb(62 42 32 / 8%) 2px,
+      transparent 2px,
+      transparent 7px
+    ),
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 35%, rgb(0 0 0 / 14%) 100%),
+    rgb(201 168 138 / 88%);
+  border: 3px solid var(--espresso);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow:
+    0 8px 20px rgb(62 42 32 / 20%),
+    inset 0 -10px 14px -6px rgb(0 0 0 / 25%);
+  transform-origin: top left;
+
+  /* Shrinks the whole board visually via transform instead of width, so the
+     flex layout inside never changes. Scale factor comes from
+     updateBoardScale() in script.js. */
+  transform: scale(var(--board-scale, 1));
+
+  /* No display set here — level 1 requires the player to add flex herself. */
+}
+
+/* Default flex layout for every level except level 1, which sets display
+   itself via its own dropdown. */
+.board--flex {
+  display: flex;
+}
+
+/* Front-edge line — also a visual anchor for align-items: flex-end
+   (levels 4, 7). Needs position: absolute, or it would become a real flex
+   item once #board turns into a flex container. */
+#board::after {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.6rem;
+  height: 3px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 28%);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Items on the counter — different heights so align-items has
+   something visible to align (levels 4, 7).
+   ========================================================================== */
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Rounded square, not 50% — stays a "squircle" instead of an ellipse. */
+  width: 72px;
+  height: var(--item-height);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 55%);
+  border: 1px solid rgb(255 255 255 / 70%);
+  box-shadow:
+    0 6px 10px rgb(62 42 32 / 28%),
+    inset 0 2px 3px rgb(255 255 255 / 65%);
+  font-size: 1.9rem;
+}
+
+/* Only --item-height differs per type — close enough to still read as one
+   matched set. */
+.item--cookie {
+  --item-height: 52px;
+}
+
+.item--cup {
+  --item-height: 62px;
+}
+
+.item--pastry {
+  --item-height: 78px;
+}
+
+.item--cake {
+  --item-height: 90px;
+}
+
+/* ==========================================================================
+   Control panel — floating card holding the level readout, switcher,
+   instruction, controls, feedback, and action buttons.
+   ========================================================================== */
+
+.control-panel {
+  /* auto height + min-height, not fixed — some levels' content runs taller
+     than --board-height. */
+  width: var(--board-width);
+  height: auto;
+  min-height: var(--board-height);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  /* Frosted glass; falls back to a plain translucent panel where
+     backdrop-filter isn't supported. */
+  background: rgb(255 255 255 / 35%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgb(62 42 32 / 12%);
+}
+
+#level-counter {
+  margin: 0;
+  font-weight: 700;
+  color: var(--espresso);
+  opacity: 0.7;
+}
+
+/* Reserves room for the longest instruction (level 4) so the panel's
+   height doesn't jump between levels. */
+#instruction {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  min-height: 4.5em;
+}
+
+/* Selects wrap up to two rows (worst case: 3 controls on levels 7-8).
+   Height is auto so it fits any level without guessing a number. */
+#controls {
+  display: flex;
+  flex-flow: row wrap;
+  align-content: flex-start;
+  gap: 0.5rem 0.75rem;
+}
+
+#controls select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--counter);
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--espresso);
+  background: var(--cream);
+}
+
+/* Set by handleCheckSolution() so the player sees which property is wrong,
+   not just a generic error. Cleared on the next change to that dropdown. */
+#controls select.select--correct {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 2px rgb(143 166 142 / 35%);
+}
+
+#controls select.select--incorrect {
+  border-color: var(--clay);
+  box-shadow: 0 0 0 2px rgb(199 123 98 / 35%);
+}
+
+/* flex: 1 1 45% fits two selects per row before wrapping. */
+.control-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 45%;
+  min-width: 160px;
+}
+
+.control-group label {
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+#attempts {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+#feedback {
+  min-height: 1.4em;
+  font-weight: 600;
+}
+
+/* Not success (--sage) or error (--clay) — a hint is a nudge, not a
+   verdict. */
+#feedback.hint {
+  color: var(--espresso);
+  font-style: italic;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 0.6rem;
+  margin-top: auto; /* pins the row to the bottom of the panel */
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--rose);
+  box-shadow: 0 6px 14px rgb(62 42 32 / 20%);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px rgb(62 42 32 / 24%);
+}
+
+button:focus-visible,
+#controls select:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+#check-btn {
+  background: var(--espresso);
+}
+
+/* Outlined, not filled — Hint is optional and secondary. */
+#hint-btn {
+  background: transparent;
+  color: var(--espresso);
+  border: 2px solid var(--espresso);
+  box-shadow: none;
+}
+
+#hint-btn:hover {
+  background: rgb(62 42 32 / 8%);
+}
+
+#next-btn {
+  background: var(--sage);
+}
+
+/* Not --rose (that's #reset-btn) — a more drastic action gets its own color. */
+#restart-btn {
+  background: var(--counter);
+}
+
+/* ==========================================================================
+   Level switcher: one round button per level, built by renderLevelNav().
+   .completed / .active / :disabled mark state; anything else is just
+   "unlocked, not done" by default.
+   ========================================================================== */
+
+#level-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--espresso);
+  border-radius: 12px;
+  background: var(--espresso);
+}
+
+#level-nav button {
+  flex-shrink: 0;
+  width: 32px;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: var(--counter);
+  color: var(--espresso);
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: none;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+#level-nav button:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
+
+#level-nav button:disabled {
+  background: var(--counter);
+  color: var(--espresso);
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#level-nav button:hover:not(:disabled) {
+  background: var(--rose);
+  transform: translateY(-2px);
+}
+
+#level-nav button.completed {
+  background: var(--rose);
+  color: #fff;
+}
+
+/* Comes after .completed so it wins if both apply. Dark fill + rose ring
+   so it reads as "selected" against the already-dark bar. */
+#level-nav button.active {
+  background: var(--espresso);
+  color: var(--cream);
+  box-shadow: 0 0 0 3px var(--rose);
+  transform: scale(1.08);
+}
+
+#level-nav button.active:hover:not(:disabled) {
+  background: var(--espresso);
+  transform: scale(1.08) translateY(-2px);
+}
+
+/* ==========================================================================
+   State classes the logic adds/removes
+   ========================================================================== */
+
+#feedback.success {
+  color: var(--sage);
+  animation: success-pop 0.5s ease;
+}
+
+#feedback.error {
+  color: var(--clay);
+}
+
+@keyframes success-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 10px rgb(143 166 142 / 50%);
+  }
+}
+
+@keyframes shake {
+  10%, 90% { transform: scale(var(--board-scale, 1)) translateX(-2px); }
+  20%, 80% { transform: scale(var(--board-scale, 1)) translateX(4px); }
+  30%, 50%, 70% { transform: scale(var(--board-scale, 1)) translateX(-8px); }
+  40%, 60% { transform: scale(var(--board-scale, 1)) translateX(8px); }
+}
+
+#board.shake {
+  animation: shake 500ms;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------- accessibility ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  #board.shake,
+  #feedback.success,
+  button {
+    animation: none;
+    transition: none;
+  }
+}

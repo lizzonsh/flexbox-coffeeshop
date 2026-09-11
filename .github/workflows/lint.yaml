@@ -16,13 +16,50 @@ jobs:
           node-version: 20
 
       - name: Install linters
-        run: npm install --no-save eslint html-validate stylelint stylelint-config-standard
+        run: npm install --no-save html-validate stylelint stylelint-config-standard eslint@9
 
       - name: Lint HTML
         run: npx html-validate "**/*.html"
 
       - name: Lint CSS
-        run: npx stylelint "**/*.css"
+        run: |
+          cat > .stylelintrc.json <<'EOF'
+          {
+            "extends": "stylelint-config-standard",
+            "rules": {
+              "selector-class-pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$"
+            }
+          }
+          EOF
+          npx stylelint "**/*.css"
 
-      - name: Lint JavaScript
-        run: npx eslint "**/*.js"
+      - name: Lint JS
+        run: |
+          cat > eslint.config.mjs <<'EOF'
+          export default [
+            {
+              files: ["**/*.js"],
+              ignores: ["node_modules/**"],
+              languageOptions: {
+                ecmaVersion: 2021,
+                sourceType: "script",
+                globals: {
+                  window: "readonly",
+                  document: "readonly",
+                  localStorage: "readonly",
+                  console: "readonly",
+                  alert: "readonly",
+                  setTimeout: "readonly",
+                  getComputedStyle: "readonly",
+                  LEVELS: "readonly",
+                  OPTIONS: "readonly"
+                }
+              },
+              rules: {
+                "no-unused-vars": "warn",
+                "no-undef": "error"
+              }
+            }
+          ];
+          EOF
+          npx eslint "**/*.js" --no-config-lookup --config eslint.config.mjs
