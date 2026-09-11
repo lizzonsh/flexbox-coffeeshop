@@ -284,12 +284,17 @@ function showFeedback(isCorrect) {
         // to match style.css's keyframes by hand. Remove it first and
         // force a reflow so consecutive wrong attempts within one
         // animation's duration still restart it instead of no-op'ing.
-        dom.board.classList.remove('shake');
-        void dom.board.offsetWidth;
-        dom.board.classList.add('shake');
-        dom.board.addEventListener('animationend', () => {
+        // Skipped entirely under reduced-motion: style.css sets
+        // animation: none there, so animationend would never fire and
+        // the class (plus a new listener) would pile up on every attempt.
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             dom.board.classList.remove('shake');
-        }, { once: true });
+            void dom.board.offsetWidth;
+            dom.board.classList.add('shake');
+            dom.board.addEventListener('animationend', () => {
+                dom.board.classList.remove('shake');
+            }, { once: true });
+        }
     }
 }
 

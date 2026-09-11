@@ -63,7 +63,7 @@ const LEVELS = [
   // and wrap causes a real overflow to a second row, not just a theoretical one.
   {
     id: 6,
-    instruction: "Too many items for one row — spread them across several rows, with each row centered.",
+    instruction: "Too many items for one row — spread them across several rows, with each row horizontally centered.",
     items: ["cup", "pastry", "cookie", "cake", "cup", "pastry", "cookie", "cake"],
     controls: ["flex-wrap", "justify-content"],
     solution: { "flex-wrap": "wrap", "justify-content": "center" }
@@ -83,7 +83,7 @@ const LEVELS = [
   // The most complex — reversed order on a column axis, centered along the column, aligned to the right.
   {
     id: 8,
-    instruction: "Arrange the items in a column, in reverse order, centered along the counter and aligned to the right side.",
+    instruction: "Arrange the items in a column, in reverse order, centered vertically and aligned to the right side.",
     items: ["cake", "cup", "pastry", "cookie"],
     controls: ["flex-direction", "justify-content", "align-items"],
     solution: { "flex-direction": "column-reverse", "justify-content": "center", "align-items": "flex-end" }
